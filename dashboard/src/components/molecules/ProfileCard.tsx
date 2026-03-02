@@ -64,7 +64,7 @@ export default function ProfileCard({
       </div>
 
       {/* Actions */}
-      <div className="flex gap-2 border-t border-border-subtle p-3">
+      <div className="flex justify-end gap-2 border-t border-border-subtle p-3">
         {onDetails && (
           <Button size="sm" variant="ghost" onClick={onDetails}>
             Details
