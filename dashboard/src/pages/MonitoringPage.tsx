@@ -187,28 +187,15 @@ export default function MonitoringPage() {
                     {selectedInstance.headless ? 'Headless' : 'Headed'}
                   </div>
                 </div>
-                <div className="flex gap-2">
+                {selectedInstance.status === 'running' && (
                   <Button
                     size="sm"
-                    onClick={() =>
-                      window.open(
-                        `http://localhost:${selectedInstance.port}/dashboard`,
-                        '_blank'
-                      )
-                    }
+                    variant="danger"
+                    onClick={() => handleStop(selectedInstance.id)}
                   >
-                    Open Dashboard
+                    Stop
                   </Button>
-                  {selectedInstance.status === 'running' && (
-                    <Button
-                      size="sm"
-                      variant="danger"
-                      onClick={() => handleStop(selectedInstance.id)}
-                    >
-                      Stop
-                    </Button>
-                  )}
-                </div>
+                )}
               </div>
 
               {/* Tabs list */}
