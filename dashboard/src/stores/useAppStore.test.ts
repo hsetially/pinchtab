@@ -131,6 +131,7 @@ describe("useAppStore", () => {
       const settings = useAppStore.getState().settings;
       expect(settings.stealth).toBe("light");
       expect(settings.screencast?.fps).toBe(1);
+      expect(settings.monitoring?.memoryMetrics).toBe(false);
     });
 
     it("updates settings", () => {
@@ -138,9 +139,47 @@ describe("useAppStore", () => {
         screencast: { fps: 5, quality: 50, maxWidth: 1024 },
         stealth: "strict" as const,
         browser: { blockImages: true, blockMedia: true, noAnimations: true },
+        monitoring: { memoryMetrics: true, pollInterval: 30 },
       };
       useAppStore.getState().setSettings(newSettings);
       expect(useAppStore.getState().settings).toEqual(newSettings);
+    });
+
+    it("persists settings to localStorage", () => {
+      const newSettings = {
+        screencast: { fps: 10, quality: 80, maxWidth: 1280 },
+        stealth: "full" as const,
+        browser: { blockImages: false, blockMedia: false, noAnimations: false },
+        monitoring: { memoryMetrics: true, pollInterval: 30 },
+      };
+      useAppStore.getState().setSettings(newSettings);
+
+      const saved = localStorage.getItem("pinchtab_settings");
+      expect(saved).toBeTruthy();
+      expect(JSON.parse(saved!)).toEqual(newSettings);
+    });
+  });
+
+  describe("memory chart data", () => {
+    it("adds memory data points", () => {
+      const point = { timestamp: Date.now(), inst_1: 50.5 };
+      useAppStore.getState().addMemoryDataPoint(point);
+      expect(useAppStore.getState().memoryChartData).toContainEqual(point);
+    });
+
+    it("limits memory data to 60 points", () => {
+      for (let i = 0; i < 65; i++) {
+        useAppStore.getState().addMemoryDataPoint({ timestamp: i, inst_1: i });
+      }
+      expect(useAppStore.getState().memoryChartData).toHaveLength(60);
+      // Should have dropped first 5, keeping 5-64
+      expect(useAppStore.getState().memoryChartData[0].timestamp).toBe(5);
+    });
+
+    it("sets current memory", () => {
+      const memory = { inst_1: 85.5, inst_2: 120.3 };
+      useAppStore.getState().setCurrentMemory(memory);
+      expect(useAppStore.getState().currentMemory).toEqual(memory);
     });
   });
 });

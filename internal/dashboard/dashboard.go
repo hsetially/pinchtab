@@ -302,16 +302,17 @@ func (d *Dashboard) RegisterHandlers(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/agents", d.handleAgents)
 	mux.HandleFunc("GET /api/events", d.handleSSE)
 
-	// Static files served at /
+	// Static files served at /dashboard/
 	sub, _ := fs.Sub(dashboardFS, "dashboard")
 	fileServer := http.FileServer(http.FS(sub))
 
-	// Serve static assets
-	mux.Handle("GET /assets/", d.withNoCache(fileServer))
-	mux.Handle("GET /pinchtab-headed-192.png", d.withNoCache(fileServer))
+	// Serve static assets under /dashboard/ with long cache (hashed filenames)
+	mux.Handle("GET /dashboard/assets/", http.StripPrefix("/dashboard", d.withLongCache(fileServer)))
+	mux.Handle("GET /dashboard/pinchtab-headed-192.png", http.StripPrefix("/dashboard", d.withLongCache(fileServer)))
 
-	// SPA: serve dashboard.html for all other routes
-	mux.Handle("GET /", d.withNoCache(http.HandlerFunc(d.handleDashboardUI)))
+	// SPA: serve dashboard.html for /dashboard
+	mux.Handle("GET /dashboard", d.withNoCache(http.HandlerFunc(d.handleDashboardUI)))
+	mux.Handle("GET /dashboard/", d.withNoCache(http.HandlerFunc(d.handleDashboardUI)))
 }
 
 func (d *Dashboard) handleAgents(w http.ResponseWriter, r *http.Request) {
@@ -384,6 +385,14 @@ func (d *Dashboard) withNoCache(next http.Handler) http.Handler {
 		w.Header().Set("Cache-Control", "no-store")
 		w.Header().Set("Pragma", "no-cache")
 		w.Header().Set("Expires", "0")
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (d *Dashboard) withLongCache(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Assets have hashes in filenames - cache for 1 year
+		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 		next.ServeHTTP(w, r)
 	})
 }

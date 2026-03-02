@@ -26,6 +26,8 @@ export default function ProfilesPage() {
   // Launch form
   const [launchPort, setLaunchPort] = useState("9868");
   const [launchHeadless, setLaunchHeadless] = useState(false);
+  const [launchError, setLaunchError] = useState("");
+  const [launchLoading, setLaunchLoading] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState("");
 
   const loadProfiles = async () => {
@@ -66,18 +68,30 @@ export default function ProfilesPage() {
   };
 
   const handleLaunch = async () => {
-    if (!showLaunch) return;
+    if (!showLaunch || launchLoading) return;
+    setLaunchError("");
+    setLaunchLoading(true);
     try {
-      await api.launchInstance({
+      const payload = {
         name: showLaunch,
-        port: launchPort || "9868",
+        port: launchPort || undefined,
         mode: launchHeadless ? "" : "headed",
-      });
+      };
+      console.log("Launching instance:", payload);
+      const result = await api.launchInstance(payload);
+      console.log("Launch result:", result);
       setShowLaunch(null);
       setLaunchPort("9868");
       setLaunchHeadless(false);
+      // Refresh instances list
+      const updated = await api.fetchInstances();
+      setInstances(updated);
     } catch (e) {
-      console.error("Failed to launch instance", e);
+      console.error("Launch failed:", e);
+      const msg = e instanceof Error ? e.message : "Failed to launch instance";
+      setLaunchError(msg);
+    } finally {
+      setLaunchLoading(false);
     }
   };
 
@@ -142,34 +156,36 @@ export default function ProfilesPage() {
       />
 
       <div className="flex-1 overflow-auto p-4">
-        {profilesLoading && profiles.length === 0 ? (
-          <div className="flex items-center justify-center py-16 text-text-muted">
-            Loading profiles...
-          </div>
-        ) : profiles.length === 0 ? (
-          <EmptyState
-            title="No profiles yet"
-            description="Click + New Profile to create one"
-            action={
-              <Button variant="primary" onClick={() => setShowCreate(true)}>
-                + New Profile
-              </Button>
-            }
-          />
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {profiles.map((p) => (
-              <ProfileCard
-                key={p.name}
-                profile={p}
-                instance={instanceByProfile.get(p.name)}
-                onLaunch={() => setShowLaunch(p.name)}
-                onStop={() => handleStop(p.name)}
-                onDetails={() => setShowDetails(p)}
-              />
-            ))}
-          </div>
-        )}
+        <div className="mx-auto max-w-2xl">
+          {profilesLoading && profiles.length === 0 ? (
+            <div className="flex items-center justify-center py-16 text-text-muted">
+              Loading profiles...
+            </div>
+          ) : profiles.length === 0 ? (
+            <EmptyState
+              title="No profiles yet"
+              description="Click + New Profile to create one"
+              action={
+                <Button variant="primary" onClick={() => setShowCreate(true)}>
+                  + New Profile
+                </Button>
+              }
+            />
+          ) : (
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+              {profiles.map((p) => (
+                <ProfileCard
+                  key={p.name}
+                  profile={p}
+                  instance={instanceByProfile.get(p.name)}
+                  onLaunch={() => setShowLaunch(p.name)}
+                  onStop={() => handleStop(p.name)}
+                  onDetails={() => setShowDetails(p)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Create Profile Modal */}
@@ -218,20 +234,39 @@ export default function ProfilesPage() {
       {/* Launch Modal */}
       <Modal
         open={!!showLaunch}
-        onClose={() => setShowLaunch(null)}
+        onClose={() => {
+          setShowLaunch(null);
+          setLaunchError("");
+        }}
         title="🖥️ Start Profile"
         actions={
           <>
-            <Button variant="secondary" onClick={() => setShowLaunch(null)}>
+            <Button
+              variant="secondary"
+              disabled={launchLoading}
+              onClick={() => {
+                setShowLaunch(null);
+                setLaunchError("");
+              }}
+            >
               Cancel
             </Button>
-            <Button variant="primary" onClick={handleLaunch}>
+            <Button
+              variant="primary"
+              onClick={handleLaunch}
+              loading={launchLoading}
+            >
               Start
             </Button>
           </>
         }
       >
         <div className="flex flex-col gap-4">
+          {launchError && (
+            <div className="rounded border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              {launchError}
+            </div>
+          )}
           <Input
             label="Port"
             placeholder="e.g. 9868"

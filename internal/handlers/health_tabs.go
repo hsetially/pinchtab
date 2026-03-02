@@ -26,7 +26,15 @@ func (h *Handlers) HandleHealth(w http.ResponseWriter, r *http.Request) {
 		web.JSON(w, 503, map[string]any{"status": "error", "reason": err.Error()})
 		return
 	}
-	web.JSON(w, 200, map[string]any{"status": "ok", "tabs": len(targets), "cdp": h.Config.CdpURL})
+
+	resp := map[string]any{"status": "ok", "tabs": len(targets), "cdp": h.Config.CdpURL}
+
+	// Include crash logs if any
+	if crashLogs := h.Bridge.GetCrashLogs(); len(crashLogs) > 0 {
+		resp["crashLogs"] = crashLogs
+	}
+
+	web.JSON(w, 200, resp)
 }
 
 func (h *Handlers) HandleEnsureChrome(w http.ResponseWriter, r *http.Request) {
@@ -39,7 +47,37 @@ func (h *Handlers) HandleEnsureChrome(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handlers) HandleMetrics(w http.ResponseWriter, r *http.Request) {
-	web.JSON(w, 200, map[string]any{"metrics": snapshotMetrics()})
+	result := map[string]any{"metrics": SnapshotMetrics()}
+
+	// Aggregate memory metrics across all tabs
+	if h.Bridge != nil {
+		if mem, err := h.Bridge.GetAggregatedMemoryMetrics(); err == nil && mem != nil {
+			result["memory"] = mem
+		}
+	}
+
+	web.JSON(w, 200, result)
+}
+
+func (h *Handlers) HandleTabMetrics(w http.ResponseWriter, r *http.Request) {
+	tabID := r.PathValue("id")
+	if tabID == "" {
+		web.Error(w, 400, fmt.Errorf("missing tab id"))
+		return
+	}
+
+	if h.Bridge == nil {
+		web.Error(w, 503, fmt.Errorf("bridge not initialized"))
+		return
+	}
+
+	mem, err := h.Bridge.GetMemoryMetrics(tabID)
+	if err != nil {
+		web.Error(w, 500, fmt.Errorf("failed to get metrics: %w", err))
+		return
+	}
+
+	web.JSON(w, 200, mem)
 }
 
 func (h *Handlers) HandleTabs(w http.ResponseWriter, r *http.Request) {

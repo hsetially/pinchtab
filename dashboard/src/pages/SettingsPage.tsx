@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useAppStore } from "../stores/useAppStore";
 import { Button, Card } from "../components/atoms";
 import * as api from "../services/api";
@@ -7,50 +7,49 @@ import type { Settings } from "../types";
 export default function SettingsPage() {
   const { settings, serverInfo, setSettings, setServerInfo } = useAppStore();
   const [local, setLocal] = useState<Settings>(settings);
-  const [saving, setSaving] = useState(false);
 
-  // Load settings on mount
+  // Check if settings have changed
+  const hasChanges = useMemo(
+    () => JSON.stringify(local) !== JSON.stringify(settings),
+    [local, settings],
+  );
+
+  // Load server info on mount (settings come from localStorage via store)
   useEffect(() => {
     const load = async () => {
       try {
-        const [s, h] = await Promise.all([
-          api.fetchSettings(),
-          api.fetchHealth(),
-        ]);
-        setSettings(s);
-        setLocal(s);
+        const h = await api.fetchHealth();
         setServerInfo(h);
       } catch (e) {
-        console.error("Failed to load settings", e);
+        console.error("Failed to load server info", e);
       }
     };
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      const updated = await api.updateSettings(local);
-      setSettings(updated);
-    } catch (e) {
-      console.error("Failed to save settings", e);
-    } finally {
-      setSaving(false);
-    }
+  const handleSave = () => {
+    // Settings are persisted to localStorage via setSettings
+    setSettings(local);
   };
 
   const handleReset = () => setLocal(settings);
 
   return (
     <div className="flex flex-1 flex-col overflow-auto">
-      <div className="sticky top-0 z-10 flex items-center justify-end gap-2 border-b border-border-subtle bg-bg-surface px-4 py-2">
-        <Button variant="secondary" onClick={handleReset}>
-          Reset
-        </Button>
-        <Button variant="primary" onClick={handleSave} disabled={saving}>
-          {saving ? "Saving..." : "Apply Settings"}
-        </Button>
+      <div className="sticky top-0 z-10 border-b border-border-subtle bg-bg-surface px-4 py-2">
+        <div className="mx-auto flex w-full max-w-2xl items-center justify-end gap-2">
+          <Button
+            variant="secondary"
+            onClick={handleReset}
+            disabled={!hasChanges}
+          >
+            Reset
+          </Button>
+          <Button variant="primary" onClick={handleSave} disabled={!hasChanges}>
+            Apply Settings
+          </Button>
+        </div>
       </div>
 
       <div className="mx-auto w-full max-w-2xl space-y-6 p-6">
@@ -179,6 +178,74 @@ export default function SettingsPage() {
                 />
               </label>
             ))}
+          </div>
+        </Card>
+
+        {/* Monitoring */}
+        <Card className="p-4">
+          <h3 className="mb-4 text-sm font-semibold text-text-primary">
+            📈 Monitoring
+          </h3>
+          <div className="space-y-3">
+            <label className="flex items-center justify-between">
+              <div>
+                <span className="text-sm text-text-secondary">
+                  Tab Memory Metrics{" "}
+                  <span className="rounded bg-yellow-500/20 px-1 py-0.5 text-xs text-yellow-500">
+                    experimental
+                  </span>
+                </span>
+                <p className="text-xs text-text-muted">
+                  Track JS heap usage per tab via CDP (may cause instability)
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked={local.monitoring?.memoryMetrics ?? false}
+                onChange={(e) =>
+                  setLocal({
+                    ...local,
+                    monitoring: {
+                      ...local.monitoring,
+                      memoryMetrics: e.target.checked,
+                    },
+                  })
+                }
+                className="h-4 w-4"
+              />
+            </label>
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-sm text-text-secondary">
+                  Poll Interval
+                </span>
+                <p className="text-xs text-text-muted">
+                  How often to fetch tab/memory data
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  min={5}
+                  max={120}
+                  step={5}
+                  value={local.monitoring?.pollInterval ?? 30}
+                  onChange={(e) =>
+                    setLocal({
+                      ...local,
+                      monitoring: {
+                        ...local.monitoring,
+                        pollInterval: +e.target.value,
+                      },
+                    })
+                  }
+                  className="w-24"
+                />
+                <span className="w-12 text-right text-sm text-text-muted">
+                  {local.monitoring?.pollInterval ?? 30}s
+                </span>
+              </div>
+            </div>
           </div>
         </Card>
 

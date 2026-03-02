@@ -26,23 +26,11 @@ const mockData: TabDataPoint[] = [
 
 describe("TabsChart", () => {
   describe("empty states", () => {
-    it('shows "No running instances" when instances array is empty', () => {
-      render(
-        <TabsChart
-          data={mockData}
-          instances={[]}
-          selectedInstanceId={null}
-          onSelectInstance={() => {}}
-        />,
-      );
-      expect(screen.getByText("No running instances")).toBeInTheDocument();
-    });
-
-    it('shows "Collecting data..." when data array is empty', () => {
+    it('shows "Collecting data..." when no data at all', () => {
       render(
         <TabsChart
           data={[]}
-          instances={mockInstances}
+          instances={[]}
           selectedInstanceId={null}
           onSelectInstance={() => {}}
         />,
@@ -50,16 +38,19 @@ describe("TabsChart", () => {
       expect(screen.getByText("Collecting data...")).toBeInTheDocument();
     });
 
-    it('shows "No running instances" when both are empty (instances takes priority)', () => {
-      render(
+    it("renders chart even with no instances if data exists (e.g., server metrics)", () => {
+      const { container } = render(
         <TabsChart
-          data={[]}
+          data={mockData}
           instances={[]}
           selectedInstanceId={null}
           onSelectInstance={() => {}}
         />,
       );
-      expect(screen.getByText("No running instances")).toBeInTheDocument();
+      // Chart container should render, not empty state
+      expect(
+        container.querySelector(".recharts-responsive-container"),
+      ).toBeInTheDocument();
     });
   });
 

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import "./NavBar.css";
 
 interface Tab {
@@ -21,7 +21,14 @@ interface NavBarProps {
 
 export default function NavBar({ onRefresh }: NavBarProps) {
   const [refreshing, setRefreshing] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const tabsRef = useRef<HTMLElement>(null);
+  const location = useLocation();
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location]);
 
   const handleRefresh = useCallback(() => {
     if (!onRefresh || refreshing) return;
@@ -49,41 +56,73 @@ export default function NavBar({ onRefresh }: NavBarProps) {
   }, [onRefresh, handleRefresh]);
 
   return (
-    <header className="sticky top-0 z-50 flex h-[52px] items-center gap-0 border-b border-border-subtle bg-bg-app px-4">
-      <span className="min-w-32 text-sm font-semibold tracking-wide text-text-primary">
-        PinchTab
-      </span>
+    <header className="sticky top-0 z-50 border-b border-border-subtle bg-bg-app">
+      <div className="flex h-[52px] items-center gap-0 px-4">
+        <span className="min-w-32 text-sm font-semibold tracking-wide text-text-primary">
+          PinchTab
+        </span>
 
-      <nav className="ml-6 flex items-center gap-0.5" ref={tabsRef}>
-        {tabs.map((tab, i) => (
-          <NavLink
-            key={tab.id}
-            to={tab.path}
-            className={({ isActive }) =>
-              `navbar-tab relative cursor-pointer border-none bg-transparent px-3.5 py-3.5 text-sm font-medium leading-none whitespace-nowrap transition-colors duration-150 hover:text-text-primary focus-visible:rounded focus-visible:shadow-[0_0_0_2px_var(--primary)/25] focus-visible:outline-none ${
-                isActive ? "active text-text-primary" : "text-text-secondary"
-              }`
-            }
-            title={`${tab.label} (⌘${i + 1})`}
-          >
-            {tab.label}
-          </NavLink>
-        ))}
-      </nav>
+        {/* Desktop nav */}
+        <nav className="ml-6 hidden items-center gap-0.5 sm:flex" ref={tabsRef}>
+          {tabs.map((tab, i) => (
+            <NavLink
+              key={tab.id}
+              to={tab.path}
+              className={({ isActive }) =>
+                `navbar-tab relative cursor-pointer border-none bg-transparent px-3.5 py-3.5 text-sm font-medium leading-none whitespace-nowrap transition-colors duration-150 hover:text-text-primary focus-visible:rounded focus-visible:shadow-[0_0_0_2px_var(--primary)/25] focus-visible:outline-none ${
+                  isActive ? "active text-text-primary" : "text-text-secondary"
+                }`
+              }
+              title={`${tab.label} (⌘${i + 1})`}
+            >
+              {tab.label}
+            </NavLink>
+          ))}
+        </nav>
 
-      <div className="ml-auto flex items-center gap-1.5">
-        {onRefresh && (
+        <div className="ml-auto flex items-center gap-1.5">
+          {onRefresh && (
+            <button
+              className={`navbar-icon-btn flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border border-transparent bg-transparent text-base text-text-muted transition-all duration-150 hover:border-border-subtle hover:bg-bg-elevated hover:text-text-secondary focus-visible:shadow-[0_0_0_2px_var(--primary)/25] focus-visible:outline-none ${
+                refreshing ? "spinning" : ""
+              }`}
+              onClick={handleRefresh}
+              title="Refresh (⌘R)"
+            >
+              ↻
+            </button>
+          )}
+          {/* Mobile menu button */}
           <button
-            className={`navbar-icon-btn flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border border-transparent bg-transparent text-base text-text-muted transition-all duration-150 hover:border-border-subtle hover:bg-bg-elevated hover:text-text-secondary focus-visible:shadow-[0_0_0_2px_var(--primary)/25] focus-visible:outline-none ${
-              refreshing ? "spinning" : ""
-            }`}
-            onClick={handleRefresh}
-            title="Refresh (⌘R)"
+            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border border-transparent bg-transparent text-lg text-text-muted transition-all duration-150 hover:border-border-subtle hover:bg-bg-elevated hover:text-text-secondary sm:hidden"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle menu"
           >
-            ↻
+            {mobileMenuOpen ? "✕" : "☰"}
           </button>
-        )}
+        </div>
       </div>
+
+      {/* Mobile menu dropdown */}
+      {mobileMenuOpen && (
+        <nav className="flex flex-col border-t border-border-subtle bg-bg-surface sm:hidden">
+          {tabs.map((tab) => (
+            <NavLink
+              key={tab.id}
+              to={tab.path}
+              className={({ isActive }) =>
+                `px-4 py-3 text-sm font-medium transition-colors duration-150 ${
+                  isActive
+                    ? "bg-bg-elevated text-text-primary"
+                    : "text-text-secondary hover:bg-bg-elevated hover:text-text-primary"
+                }`
+              }
+            >
+              {tab.label}
+            </NavLink>
+          ))}
+        </nav>
+      )}
     </header>
   );
 }

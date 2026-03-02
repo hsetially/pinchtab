@@ -24,7 +24,8 @@
     "guides/cdp-url-shared-chrome.md",
     "guides/headed-mode-guide.md",
     "guides/identifying-instances.md",
-    "guides/agent-optimization.md"
+    "guides/agent-optimization.md",
+    "guides/memory-monitoring.md"
   ],
   "proposals": [
     "proposals/default-instance.md",

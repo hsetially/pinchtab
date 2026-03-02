@@ -89,6 +89,14 @@ export interface Settings {
   screencast: ScreencastSettings;
   stealth: string; // light/full
   browser: BrowserSettings;
+  monitoring: MonitoringSettings;
+}
+/**
+ * MonitoringSettings controls dashboard monitoring features.
+ */
+export interface MonitoringSettings {
+  memoryMetrics: boolean; // Enable per-tab memory aggregation (can be heavy)
+  pollInterval: number /* int */; // Poll interval in seconds (default 30)
 }
 /**
  * ServerInfo contains health/status information.
@@ -124,6 +132,19 @@ export interface InstanceTab {
   instanceId: string;
   url: string;
   title: string;
+}
+/**
+ * InstanceMetrics represents memory metrics for an instance.
+ */
+export interface InstanceMetrics {
+  instanceId: string;
+  profileName: string;
+  jsHeapUsedMB: number /* float64 */;
+  jsHeapTotalMB: number /* float64 */;
+  documents: number /* int64 */;
+  frames: number /* int64 */;
+  nodes: number /* int64 */;
+  listeners: number /* int64 */;
 }
 /**
  * LaunchInstanceRequest is the request body for launching an instance.

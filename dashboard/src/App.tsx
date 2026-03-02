@@ -1,7 +1,14 @@
 import { useEffect } from "react";
-import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  HashRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 import { useAppStore } from "./stores/useAppStore";
 import { NavBar } from "./components/molecules";
+import { DebugPanel } from "./components/atoms";
 import {
   MonitoringPage,
   ProfilesPage,
@@ -12,6 +19,12 @@ import * as api from "./services/api";
 
 function AppContent() {
   const { setInstances, setProfiles, setAgents } = useAppStore();
+  const location = useLocation();
+
+  // Log navigation for debugging
+  useEffect(() => {
+    console.log("📍 Navigation:", location.pathname);
+  }, [location]);
 
   // Initial load
   useEffect(() => {
@@ -69,6 +82,7 @@ function AppContent() {
           <Route path="/settings" element={<SettingsPage />} />
         </Routes>
       </main>
+      <DebugPanel />
     </div>
   );
 }

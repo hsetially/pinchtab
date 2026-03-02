@@ -78,6 +78,13 @@ type Settings struct {
 	Screencast ScreencastSettings `json:"screencast"`
 	Stealth    string             `json:"stealth"` // light/full
 	Browser    BrowserSettings    `json:"browser"`
+	Monitoring MonitoringSettings `json:"monitoring"`
+}
+
+// MonitoringSettings controls dashboard monitoring features.
+type MonitoringSettings struct {
+	MemoryMetrics bool `json:"memoryMetrics"` // Enable per-tab memory aggregation (can be heavy)
+	PollInterval  int  `json:"pollInterval"`  // Poll interval in seconds (default 30)
 }
 
 // ServerInfo contains health/status information.
@@ -109,6 +116,18 @@ type InstanceTab struct {
 	InstanceID string `json:"instanceId"`
 	URL        string `json:"url"`
 	Title      string `json:"title"`
+}
+
+// InstanceMetrics represents memory metrics for an instance.
+type InstanceMetrics struct {
+	InstanceID    string  `json:"instanceId"`
+	ProfileName   string  `json:"profileName"`
+	JSHeapUsedMB  float64 `json:"jsHeapUsedMB"`
+	JSHeapTotalMB float64 `json:"jsHeapTotalMB"`
+	Documents     int64   `json:"documents"`
+	Frames        int64   `json:"frames"`
+	Nodes         int64   `json:"nodes"`
+	Listeners     int64   `json:"listeners"`
 }
 
 // LaunchInstanceRequest is the request body for launching an instance.

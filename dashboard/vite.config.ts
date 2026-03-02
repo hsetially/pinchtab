@@ -5,12 +5,13 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  base: '/', // Served at / by Go
+  base: '/dashboard/', // Served at /dashboard by Go
   server: {
     port: 5173,
     proxy: {
       '/api': 'http://localhost:9867',
       '/health': 'http://localhost:9867',
+      '/metrics': 'http://localhost:9867',
     },
   },
   build: {

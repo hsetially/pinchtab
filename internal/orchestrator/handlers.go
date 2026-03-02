@@ -16,6 +16,7 @@ func (o *Orchestrator) RegisterHandlers(mux *http.ServeMux) {
 	mux.HandleFunc("GET /instances", o.handleList)
 	mux.HandleFunc("GET /instances/{id}", o.handleGetInstance)
 	mux.HandleFunc("GET /instances/tabs", o.handleAllTabs)
+	mux.HandleFunc("GET /instances/metrics", o.handleAllMetrics)
 	mux.HandleFunc("POST /instances/start", o.handleStartInstance)
 	mux.HandleFunc("POST /instances/launch", o.handleLaunchByName)
 	mux.HandleFunc("POST /instances/{id}/start", o.handleStartByInstanceID)
@@ -47,6 +48,7 @@ func (o *Orchestrator) RegisterHandlers(mux *http.ServeMux) {
 		"POST /tabs/{id}/unlock",
 		"GET /tabs/{id}/cookies",
 		"POST /tabs/{id}/cookies",
+		"GET /tabs/{id}/metrics",
 	}
 	for _, route := range tabProxyRoutes {
 		mux.HandleFunc(route, o.proxyTabRequest)
@@ -59,4 +61,8 @@ func (o *Orchestrator) handleList(w http.ResponseWriter, r *http.Request) {
 
 func (o *Orchestrator) handleAllTabs(w http.ResponseWriter, r *http.Request) {
 	web.JSON(w, 200, o.AllTabs())
+}
+
+func (o *Orchestrator) handleAllMetrics(w http.ResponseWriter, r *http.Request) {
+	web.JSON(w, 200, o.AllMetrics())
 }

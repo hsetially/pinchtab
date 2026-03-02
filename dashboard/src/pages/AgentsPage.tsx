@@ -48,9 +48,38 @@ export default function AgentsPage() {
   });
 
   return (
-    <div className="flex flex-1">
-      {/* Agents sidebar */}
-      <div className="w-64 shrink-0 border-r border-border-subtle bg-bg-surface">
+    <div className="flex flex-1 flex-col sm:flex-row">
+      {/* Mobile: Agents carousel (horizontal scroll) */}
+      <div className="shrink-0 border-b border-border-subtle bg-bg-surface sm:hidden">
+        <div className="flex items-center gap-2 overflow-x-auto px-4 py-3">
+          <button
+            className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-all ${
+              !selectedAgentId
+                ? "bg-primary text-white"
+                : "bg-bg-elevated text-text-secondary hover:bg-bg-elevated/80"
+            }`}
+            onClick={() => setSelectedAgentId(null)}
+          >
+            All
+          </button>
+          {agents.map((agent) => (
+            <button
+              key={agent.id}
+              className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                selectedAgentId === agent.id
+                  ? "bg-primary text-white"
+                  : "bg-bg-elevated text-text-secondary hover:bg-bg-elevated/80"
+              }`}
+              onClick={() => setSelectedAgentId(agent.id)}
+            >
+              {agent.name || agent.id}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Desktop: Agents sidebar */}
+      <div className="hidden w-64 shrink-0 border-r border-border-subtle bg-bg-surface sm:block">
         <div className="border-b border-border-subtle p-3">
           <h2 className="text-sm font-semibold text-text-secondary">Agents</h2>
         </div>
@@ -90,7 +119,7 @@ export default function AgentsPage() {
       </div>
 
       {/* Activity feed */}
-      <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col overflow-hidden">
         <div className="flex items-center justify-between border-b border-border-subtle bg-bg-surface px-4 py-2">
           <h2 className="text-sm font-semibold text-text-secondary">
             Activity Feed

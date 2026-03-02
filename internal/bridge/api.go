@@ -31,6 +31,14 @@ type BridgeAPI interface {
 	Unlock(tabID, owner string) error
 
 	EnsureChrome(cfg *config.RuntimeConfig) error
+
+	// Memory metrics
+	GetMemoryMetrics(tabID string) (*MemoryMetrics, error)
+	GetBrowserMemoryMetrics() (*MemoryMetrics, error)
+	GetAggregatedMemoryMetrics() (*MemoryMetrics, error)
+
+	// Crash monitoring
+	GetCrashLogs() []string
 }
 
 type LockInfo struct {

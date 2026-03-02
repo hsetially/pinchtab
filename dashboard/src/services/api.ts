@@ -2,8 +2,8 @@ import type {
   Profile,
   Instance,
   InstanceTab,
+  InstanceMetrics,
   Agent,
-  Settings,
   ServerInfo,
   CreateProfileRequest,
   CreateProfileResponse,
@@ -71,22 +71,24 @@ export async function fetchAllTabs(): Promise<InstanceTab[]> {
   return request<InstanceTab[]>("/instances/tabs");
 }
 
+export async function fetchAllMetrics(): Promise<InstanceMetrics[]> {
+  return request<InstanceMetrics[]>("/instances/metrics");
+}
+
+export interface ServerMetrics {
+  goHeapAllocMB: number;
+  goNumGoroutine: number;
+  rateBucketHosts: number;
+}
+
+export async function fetchServerMetrics(): Promise<ServerMetrics> {
+  const res = await request<{ metrics: ServerMetrics }>("/metrics");
+  return res.metrics;
+}
+
 // Agents — endpoint is /api/agents (dashboard API)
 export async function fetchAgents(): Promise<Agent[]> {
   return request<Agent[]>("/api/agents");
-}
-
-// Settings — TODO: check if endpoint exists
-export async function fetchSettings(): Promise<Settings> {
-  return request<Settings>("/api/settings");
-}
-
-export async function updateSettings(settings: Settings): Promise<Settings> {
-  return request<Settings>("/api/settings", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(settings),
-  });
 }
 
 // Health
@@ -143,5 +145,17 @@ export function subscribeToEvents(handlers: EventHandler): () => void {
     }
   });
 
-  return () => es.close();
+  // Suppress connection errors (expected on page reload/navigation)
+  es.onerror = () => {
+    // SSE will auto-reconnect; silence console noise
+  };
+
+  // Clean up on page unload to prevent ERR_INCOMPLETE_CHUNKED_ENCODING
+  const cleanup = () => es.close();
+  window.addEventListener("beforeunload", cleanup);
+
+  return () => {
+    window.removeEventListener("beforeunload", cleanup);
+    es.close();
+  };
 }

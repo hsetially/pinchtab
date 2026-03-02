@@ -14,6 +14,18 @@ export interface TabDataPoint {
   [instanceId: string]: number;
 }
 
+export interface MemoryDataPoint {
+  timestamp: number;
+  [instanceId: string]: number; // jsHeapUsedMB
+}
+
+export interface ServerDataPoint {
+  timestamp: number;
+  goHeapMB: number;
+  goroutines: number;
+  rateBucketHosts: number;
+}
+
 interface AppState {
   // Profiles
   profiles: Profile[];
@@ -29,9 +41,15 @@ interface AppState {
 
   // Chart data (persists across navigation)
   tabsChartData: TabDataPoint[];
+  memoryChartData: MemoryDataPoint[];
+  serverChartData: ServerDataPoint[];
   currentTabs: Record<string, InstanceTab[]>;
+  currentMemory: Record<string, number>; // instanceId -> jsHeapUsedMB
   addChartDataPoint: (point: TabDataPoint) => void;
+  addMemoryDataPoint: (point: MemoryDataPoint) => void;
+  addServerDataPoint: (point: ServerDataPoint) => void;
   setCurrentTabs: (tabs: Record<string, InstanceTab[]>) => void;
+  setCurrentMemory: (memory: Record<string, number>) => void;
 
   // Agents
   agents: Agent[];
@@ -59,7 +77,30 @@ const defaultSettings: Settings = {
   screencast: { fps: 1, quality: 30, maxWidth: 800 },
   stealth: "light",
   browser: { blockImages: false, blockMedia: false, noAnimations: false },
+  monitoring: { memoryMetrics: false, pollInterval: 30 },
 };
+
+const SETTINGS_KEY = "pinchtab_settings";
+
+function loadSettings(): Settings {
+  try {
+    const saved = localStorage.getItem(SETTINGS_KEY);
+    if (saved) {
+      return { ...defaultSettings, ...JSON.parse(saved) };
+    }
+  } catch {
+    // ignore parse errors
+  }
+  return defaultSettings;
+}
+
+function saveSettings(settings: Settings) {
+  try {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  } catch {
+    // ignore storage errors
+  }
+}
 
 export const useAppStore = create<AppState>((set) => ({
   // Profiles
@@ -76,12 +117,24 @@ export const useAppStore = create<AppState>((set) => ({
 
   // Chart data
   tabsChartData: [],
+  memoryChartData: [],
+  serverChartData: [],
   currentTabs: {},
+  currentMemory: {},
   addChartDataPoint: (point) =>
     set((state) => ({
       tabsChartData: [...state.tabsChartData.slice(-59), point], // Keep last 60 points
     })),
+  addMemoryDataPoint: (point) =>
+    set((state) => ({
+      memoryChartData: [...state.memoryChartData.slice(-59), point], // Keep last 60 points
+    })),
+  addServerDataPoint: (point) =>
+    set((state) => ({
+      serverChartData: [...state.serverChartData.slice(-59), point], // Keep last 60 points
+    })),
   setCurrentTabs: (currentTabs) => set({ currentTabs }),
+  setCurrentMemory: (currentMemory) => set({ currentMemory }),
 
   // Agents
   agents: [],
@@ -97,9 +150,12 @@ export const useAppStore = create<AppState>((set) => ({
   setEventFilter: (eventFilter) => set({ eventFilter }),
   clearEvents: () => set({ events: [] }),
 
-  // Settings
-  settings: defaultSettings,
-  setSettings: (settings) => set({ settings }),
+  // Settings (persisted to localStorage)
+  settings: loadSettings(),
+  setSettings: (settings) => {
+    saveSettings(settings);
+    set({ settings });
+  },
 
   // Server info
   serverInfo: null,
