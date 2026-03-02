@@ -1,6 +1,8 @@
 package bridge
 
 import (
+	"strings"
+
 	"github.com/chromedp/chromedp"
 	"github.com/shirou/gopsutil/v4/process"
 )
@@ -121,14 +123,5 @@ func getProcessMemory(pid int32) (uint64, error) {
 
 // containsRenderer checks if cmdline indicates a renderer process
 func containsRenderer(cmdline string) bool {
-	return len(cmdline) > 0 && (stringContains(cmdline, "--type=renderer") || stringContains(cmdline, "--type=tab"))
-}
-
-func stringContains(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
+	return strings.Contains(cmdline, "--type=renderer") || strings.Contains(cmdline, "--type=tab")
 }
