@@ -334,6 +334,18 @@ func (m *MockBridge) EnsureChrome(cfg *config.RuntimeConfig) error {
 	return nil
 }
 
+func (m *MockBridge) GetMemoryMetrics(tabID string) (*bridge.MemoryMetrics, error) {
+	return &bridge.MemoryMetrics{JSHeapUsedMB: 10, JSHeapTotalMB: 20}, nil
+}
+
+func (m *MockBridge) GetBrowserMemoryMetrics() (*bridge.MemoryMetrics, error) {
+	return &bridge.MemoryMetrics{JSHeapUsedMB: 50, JSHeapTotalMB: 100}, nil
+}
+
+func (m *MockBridge) GetAggregatedMemoryMetrics() (*bridge.MemoryMetrics, error) {
+	return &bridge.MemoryMetrics{JSHeapUsedMB: 50, JSHeapTotalMB: 100, Nodes: 500}, nil
+}
+
 type mockBridgeDisconnected struct {
 	mockBridge
 }
