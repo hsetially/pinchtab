@@ -260,7 +260,7 @@ DEV=$(pinchtab instance launch --mode headed | jq -r '.id')
 
 # Terminal 3: Build and test your automation
 curl -X POST http://localhost:9867/instances/$DEV/navigate \
-  -d '{"url":"https://example.com"}'
+  -d '{"url":"https://pinchtab.com"}'
 
 # Verify behavior in the visible window while you develop
 # ... iterate on your script ...
@@ -486,7 +486,7 @@ done
 
 # Now safe to use
 curl -X POST http://localhost:9867/instances/$INST/navigate \
-  -d '{"url":"https://example.com"}'
+  -d '{"url":"https://pinchtab.com"}'
 ```
 
 ### Can't Connect to Instance

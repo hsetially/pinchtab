@@ -23,7 +23,7 @@ func snapshotPath(path string) string {
 
 // S1: Basic snapshot
 func TestSnapshot_Basic(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	code, body := httpGet(t, snapshotPath("/snapshot"))
 	if code != 200 {
 		t.Fatalf("expected 200, got %d", code)
@@ -40,13 +40,13 @@ func TestSnapshot_Basic(t *testing.T) {
 
 // S2: Interactive filter
 func TestSnapshot_Interactive(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	code, body := httpGet(t, snapshotPath("/snapshot?filter=interactive"))
 	if code != 200 {
 		t.Fatalf("expected 200, got %d", code)
 	}
 	s := string(body)
-	// example.com has a link "More information..."
+	// pinchtab.com has a link "More information..."
 	if !strings.Contains(s, "link") && !strings.Contains(s, "More information") {
 		t.Log("warning: expected interactive elements in snapshot")
 	}
@@ -54,7 +54,7 @@ func TestSnapshot_Interactive(t *testing.T) {
 
 // S4: Text format
 func TestSnapshot_TextFormat(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	code, body := httpGet(t, snapshotPath("/snapshot?format=text"))
 	if code != 200 {
 		t.Fatalf("expected 200, got %d", code)
@@ -71,7 +71,7 @@ func TestSnapshot_TextFormat(t *testing.T) {
 
 // S5: YAML format
 func TestSnapshot_YAMLFormat(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	code, body := httpGet(t, snapshotPath("/snapshot?format=yaml"))
 	if code != 200 {
 		t.Fatalf("expected 200, got %d", code)
@@ -84,7 +84,7 @@ func TestSnapshot_YAMLFormat(t *testing.T) {
 
 // S3: Depth filter
 func TestSnapshot_Depth(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	code, _ := httpGet(t, snapshotPath("/snapshot?depth=2"))
 	if code != 200 {
 		t.Fatalf("expected 200, got %d", code)
@@ -93,7 +93,7 @@ func TestSnapshot_Depth(t *testing.T) {
 
 // S5 (compact): maxTokens
 func TestSnapshot_MaxTokens(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	code, _ := httpGet(t, snapshotPath("/snapshot?maxTokens=500"))
 	if code != 200 {
 		t.Fatalf("expected 200, got %d", code)
@@ -102,10 +102,10 @@ func TestSnapshot_MaxTokens(t *testing.T) {
 
 // S9: Snapshot with specific tabId
 func TestSnapshot_WithTabId(t *testing.T) {
-	// Create first tab and navigate to example.com
+	// Create first tab and navigate to pinchtab.com
 	code, body := httpPost(t, "/tab", map[string]string{
 		"action": "new",
-		"url":    "https://example.com",
+		"url":    examplePageURL(t),
 	})
 	if code != 200 {
 		t.Skip("could not create first tab")
@@ -120,7 +120,7 @@ func TestSnapshot_WithTabId(t *testing.T) {
 	// Create second tab and navigate to httpbin.org
 	code, body = httpPost(t, "/tab", map[string]string{
 		"action": "new",
-		"url":    "https://httpbin.org",
+		"url":    formsPageURL(t),
 	})
 	if code != 200 {
 		t.Skip("could not create second tab")
@@ -159,7 +159,7 @@ func TestSnapshot_NoTab(t *testing.T) {
 
 // S8: Snapshot file output
 func TestSnapshot_FileOutput(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	code, body := httpGet(t, snapshotPath("/snapshot?output=file"))
 	if code != 200 {
 		t.Fatalf("expected 200, got %d (body: %s)", code, body)
@@ -182,7 +182,7 @@ func TestSnapshot_FileOutput(t *testing.T) {
 
 // S12: Snapshot ref stability across interactions
 func TestSnapshot_RefStability(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 
 	// Get initial snapshot with interactive filter
 	code, body := httpGet(t, snapshotPath("/snapshot?filter=interactive"))
@@ -221,7 +221,7 @@ func TestSnapshot_RefStability(t *testing.T) {
 
 // S6: Snapshot diff mode
 func TestSnapshot_DiffMode(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 
 	// First snapshot call - stores state
 	code, body1 := httpGet(t, snapshotPath("/snapshot"))
@@ -261,7 +261,7 @@ func TestSnapshot_DiffMode(t *testing.T) {
 // S7: Snapshot diff on first call (no prior state)
 func TestSnapshot_DiffFirstCall(t *testing.T) {
 	// Fresh navigate - no prior snapshot stored
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 
 	// Call /snapshot?diff=true immediately (first call with diff=true)
 	code, body := httpGet(t, snapshotPath("/snapshot?diff=true"))
@@ -285,7 +285,7 @@ func TestSnapshot_DiffFirstCall(t *testing.T) {
 // S11: Snapshot on large page
 func TestSnapshot_LargePage(t *testing.T) {
 	// Navigate to a large Wikipedia article
-	url := "https://en.wikipedia.org/wiki/List_of_countries_and_territories_by_total_area"
+	url := largePageURL(t)
 	navigate(t, url)
 
 	// Call /snapshot on the large page

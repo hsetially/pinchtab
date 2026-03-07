@@ -92,7 +92,7 @@ sleep 3
 
 ```bash
 # Navigate to a website
-pinchtab instance navigate $INST https://example.com
+pinchtab instance navigate $INST https://pinchtab.com
 
 # Get page structure
 curl http://localhost:9867/tabs/$TAB_ID/snapshot | jq '.nodes | map({role, name}) | .[0:5]'
@@ -115,7 +115,7 @@ sleep 2
 
 # Navigate
 TAB_ID=$(curl -s -X POST http://localhost:9867/instances/$INST/tabs/open \
-  -d '{"url":"https://example.com"}' | jq -r '.id')
+  -d '{"url":"https://pinchtab.com"}' | jq -r '.id')
 
 # Read the page as text
 curl http://localhost:9867/tabs/$TAB_ID/text
@@ -155,7 +155,7 @@ curl -X POST http://localhost:9867/tabs/$TAB_ID/action \
 # Or fill a form input
 curl -X POST http://localhost:9867/tabs/$TAB_ID/action \
   -H "Content-Type: application/json" \
-  -d '{"kind":"fill","ref":"e3","text":"user@example.com"}'
+  -d '{"kind":"fill","ref":"e3","text":"user@pinchtab.com"}'
 ```
 
 ### Multiple Tabs
@@ -207,7 +207,7 @@ sleep 2
 
 # 2. Navigate to a page
 TAB_ID=$(curl -s -X POST http://localhost:9867/instances/$INST/tabs/open \
-  -d '{"url":"https://example.com"}' | jq -r '.id')
+  -d '{"url":"https://pinchtab.com"}' | jq -r '.id')
 
 # 3. Get page structure (see buttons, links, inputs)
 curl http://localhost:9867/tabs/$TAB_ID/snapshot
@@ -244,7 +244,7 @@ sleep 2
 # Navigate
 curl -X POST http://localhost:9867/instances/$INST/tabs/open \
   -H "Content-Type: application/json" \
-  -d '{"url":"https://example.com"}'
+  -d '{"url":"https://pinchtab.com"}'
 
 # Get snapshot
 curl http://localhost:9867/tabs/$TAB_ID/snapshot
@@ -280,7 +280,7 @@ time.sleep(2)
 
 # 2. Create tab by navigating
 resp = requests.post(f"{BASE}/instances/{inst_id}/tabs/open", json={
-    "url": "https://example.com"
+    "url": "https://pinchtab.com"
 })
 tab_id = resp.json()["id"]
 print(f"Navigated: {resp.json()}")
@@ -337,7 +337,7 @@ async function main() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        url: "https://example.com"
+        url: "https://pinchtab.com"
       })
     });
     const navData = await navResp.json();
@@ -437,7 +437,7 @@ sleep 2
 
 # Navigate
 curl -X POST http://localhost:9867/instances/$INST/tabs/open \
-  -d '{"url":"https://example.com/article"}'
+  -d '{"url":"https://pinchtab.com/article"}'
 
 # Extract text
 curl http://localhost:9867/tabs/$TAB_ID/text | jq '.text'
@@ -458,7 +458,7 @@ sleep 2
 
 # Navigate to form
 curl -X POST http://localhost:9867/instances/$INST/tabs/open \
-  -d '{"url":"https://example.com/contact"}'
+  -d '{"url":"https://pinchtab.com/contact"}'
 
 # Get form structure
 SNAP=$(curl http://localhost:9867/tabs/$TAB_ID/snapshot)
@@ -468,7 +468,7 @@ curl -X POST http://localhost:9867/tabs/$TAB_ID/action \
   -d '{"kind":"fill","ref":"e3","text":"John Doe"}'
 
 curl -X POST http://localhost:9867/tabs/$TAB_ID/action \
-  -d '{"kind":"fill","ref":"e5","text":"john@example.com"}'
+  -d '{"kind":"fill","ref":"e5","text":"john@pinchtab.com"}'
 
 curl -X POST http://localhost:9867/tabs/$TAB_ID/action \
   -d '{"kind":"fill","ref":"e7","text":"My message here"}'
@@ -495,10 +495,10 @@ sleep 2
 
 # Login
 curl -X POST http://localhost:9867/instances/$INST/tabs/open \
-  -d '{"url":"https://example.com/login"}'
+  -d '{"url":"https://pinchtab.com/login"}'
 
 curl -X POST http://localhost:9867/tabs/$TAB_ID/action \
-  -d '{"kind":"fill","ref":"e3","text":"user@example.com"}'
+  -d '{"kind":"fill","ref":"e3","text":"user@pinchtab.com"}'
 
 curl -X POST http://localhost:9867/tabs/$TAB_ID/action \
   -d '{"kind":"fill","ref":"e5","text":"password"}'
@@ -516,7 +516,7 @@ sleep 2
 
 # Navigate to dashboard (cookies preserved)
 curl -X POST http://localhost:9867/instances/$INST/tabs/open \
-  -d '{"url":"https://example.com/dashboard"}'
+  -d '{"url":"https://pinchtab.com/dashboard"}'
 ```
 
 ### Scenario 4: Generate PDF Report
@@ -527,7 +527,7 @@ INST=$(pinchtab instance launch | jq -r '.id')
 sleep 2
 
 TAB_ID=$(curl -s -X POST http://localhost:9867/instances/$INST/tabs/open \
-  -d '{"url":"https://reports.example.com/monthly"}' | jq -r '.id')
+  -d '{"url":"https://reports.pinchtab.com/monthly"}' | jq -r '.id')
 # Export PDF
 curl "http://localhost:9867/tabs/$TAB_ID/pdf?landscape=true" -o report.pdf
 ```
@@ -541,11 +541,11 @@ sleep 2
 
 # Open first tab (source)
 curl -X POST http://localhost:9867/instances/$INST/tabs/open \
-  -d '{"url":"https://source.example.com"}'
+  -d '{"url":"https://source.pinchtab.com"}'
 
 # Open second tab (destination)
 curl -X POST http://localhost:9867/instances/$INST/tabs/open \
-  -d '{"url":"https://destination.example.com"}'
+  -d '{"url":"https://destination.pinchtab.com"}'
 
 # List tabs
 TABS=$(curl http://localhost:9867/instances/$INST/tabs)
@@ -594,7 +594,7 @@ done
 
 # Now safe to use
 curl -X POST http://localhost:9867/instances/$INST/tabs/open \
-  -d '{"url":"https://example.com"}'
+  -d '{"url":"https://pinchtab.com"}'
 ```
 
 ### "Port already in use"

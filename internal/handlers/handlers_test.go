@@ -125,7 +125,7 @@ func TestHandleNavigate(t *testing.T) {
 	h := New(m, cfg, nil, nil, nil)
 
 	// 1. Valid POST request
-	body := `{"url": "https://example.com"}`
+	body := `{"url": "https://pinchtab.com"}`
 	req := httptest.NewRequest("POST", "/navigate", bytes.NewReader([]byte(body)))
 	w := httptest.NewRecorder()
 	h.HandleNavigate(w, req)
@@ -136,7 +136,7 @@ func TestHandleNavigate(t *testing.T) {
 	}
 
 	// 2. Valid GET request (ergonomic alias path style)
-	req = httptest.NewRequest("GET", "/nav?url=https%3A%2F%2Fexample.com", nil)
+	req = httptest.NewRequest("GET", "/nav?url=https%3A%2F%2Fpinchtab.com", nil)
 	w = httptest.NewRecorder()
 	h.HandleNavigate(w, req)
 	if w.Code != 200 && w.Code != 500 {

@@ -219,8 +219,8 @@ curl http://localhost:9867/health
 ### Try CLI
 
 ```bash
-./pinchtab quick https://example.com
-./pinchtab nav https://github.com
+./pinchtab quick https://pinchtab.com
+./pinchtab nav https://pinchtab.com
 ./pinchtab snap
 ```
 
@@ -259,9 +259,10 @@ All dev scripts are accessible through `./pdev`:
 | `check dashboard` | Dashboard checks only |
 | `check security` | Gosec security scan |
 | `check docs` | Validate docs JSON |
-| `test` | All tests (unit + integration) |
+| `test` | All tests (unit + integration + system) |
 | `test unit` | Unit tests only |
 | `test integration` | Integration tests only |
+| `test system` | System tests only |
 | `build` | Build & run (default) |
 | `doctor` | Setup dev environment |
 | `hooks` | Install git hooks |
@@ -276,7 +277,7 @@ pdev() { if [ -x "./pdev" ]; then ./pdev "$@"; else echo "pdev not found in curr
 ### Code Quality
 
 ```bash
-./pdev check              # Full pre-push checks (recommended)
+./pdev check              # Full non-test checks (recommended)
 gofmt -w .                # Format code
 golangci-lint run         # Lint
 ./pdev doctor             # Verify environment

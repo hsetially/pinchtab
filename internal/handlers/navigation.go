@@ -39,7 +39,7 @@ const maxBodySize = 1 << 20
 //
 //	curl -X POST http://localhost:9867/navigate \
 //	  -H "Content-Type: application/json" \
-//	  -d '{"url":"https://example.com"}'
+//	  -d '{"url":"https://pinchtab.com"}'
 //
 // @Example curl navigate existing:
 //
@@ -49,7 +49,7 @@ const maxBodySize = 1 << 20
 //
 // @Example cli:
 //
-//	pinchtab nav https://example.com
+//	pinchtab nav https://pinchtab.com
 func (h *Handlers) HandleNavigate(w http.ResponseWriter, r *http.Request) {
 	// Ensure Chrome is initialized
 	if err := h.ensureChrome(); err != nil {
@@ -149,7 +149,7 @@ func (h *Handlers) HandleNavigate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if req.NewTab {
-		// Block dangerous/unsupported schemes; allow bare hostnames (e.g. "example.com")
+		// Block dangerous/unsupported schemes; allow bare hostnames (e.g. "pinchtab.com")
 		// which Chrome handles gracefully by prepending https://.
 		if parsed, err := url.Parse(req.URL); err == nil && parsed.Scheme != "" {
 			blocked := parsed.Scheme == "javascript" || parsed.Scheme == "vbscript" || parsed.Scheme == "data"

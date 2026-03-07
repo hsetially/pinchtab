@@ -2,7 +2,7 @@
 set -e
 
 # check-dashboard.sh — Dashboard quality checks (matches CI: dashboard.yml)
-# Runs: typecheck → eslint → prettier → vitest
+# Runs: typecheck → eslint → prettier
 
 cd "$(dirname "$0")/.."
 
@@ -18,7 +18,7 @@ fail() { echo -e "  ${ERROR}✗${NC} $1"; [ -n "${2:-}" ] && echo -e "    ${MUTE
 
 section() {
   echo ""
-  echo -e "${ACCENT}${BOLD}$1${NC}"
+  echo -e "  ${ACCENT}${BOLD}$1${NC}"
 }
 
 if [ ! -d "dashboard" ]; then
@@ -68,14 +68,6 @@ if $RUN run format:check 2>&1; then
 else
   fail "Files not formatted"
   echo -e "    ${MUTED}Run: cd dashboard && $RUN run format${NC}"
-  exit 1
-fi
-
-section "Tests"
-if $RUN run test:run 2>&1; then
-  ok "All tests passed"
-else
-  fail "Test failures"
   exit 1
 fi
 

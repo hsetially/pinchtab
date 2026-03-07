@@ -85,7 +85,7 @@ func TestHandleHealth_Success(t *testing.T) {
 	// Create a mock bridge that returns targets
 	mockBridge := &MockBridge{
 		targets: []*target.Info{
-			{TargetID: "target1", URL: "https://example.com", Title: "Example"},
+			{TargetID: "target1", URL: "https://pinchtab.com", Title: "Example"},
 		},
 	}
 
@@ -138,7 +138,7 @@ func TestHandleTabs_NilBridge(t *testing.T) {
 func TestHandleTabs_Success(t *testing.T) {
 	mockBridge := &MockBridge{
 		targets: []*target.Info{
-			{TargetID: "tab1", URL: "https://example.com", Title: "Example", Type: "page"},
+			{TargetID: "tab1", URL: "https://pinchtab.com", Title: "Example", Type: "page"},
 			{TargetID: "tab2", URL: "https://google.com", Title: "Google", Type: "page"},
 		},
 	}
@@ -220,7 +220,7 @@ func TestHandleHealth_EnsureChromeFailure(t *testing.T) {
 func TestHandleHealth_EnsureChromeSuccess(t *testing.T) {
 	mockBridge := &MockBridge{
 		targets: []*target.Info{
-			{TargetID: "target1", URL: "https://example.com", Title: "Example"},
+			{TargetID: "target1", URL: "https://pinchtab.com", Title: "Example"},
 		},
 		ensureChromeCalled: false,
 		ensureChromeErr:    "", // No error

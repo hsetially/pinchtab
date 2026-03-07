@@ -70,7 +70,7 @@ pinchtab
 **Terminal 2 — Control the browser:**
 ```bash
 # Navigate
-pinchtab nav https://example.com
+pinchtab nav https://pinchtab.com
 
 # Get page structure
 pinchtab snap -i -c
@@ -148,10 +148,10 @@ An **SMCP plugin** in this repo lets AI agents control PinchTab via the [Model C
 
 ```bash
 # Your AI agent can:
-pinchtab nav https://example.com
+pinchtab nav https://pinchtab.com
 pinchtab snap -i  # Get clickable elements
 pinchtab click e5 # Click by ref
-pinchtab fill e3 "user@example.com"  # Fill input
+pinchtab fill e3 "user@pinchtab.com"  # Fill input
 pinchtab press e7 Enter              # Submit form
 ```
 
@@ -159,7 +159,7 @@ pinchtab press e7 Enter              # Submit form
 
 ```bash
 # Extract text (token-efficient)
-pinchtab nav https://example.com/article
+pinchtab nav https://pinchtab.com/article
 pinchtab text  # ~800 tokens instead of 10,000
 ```
 

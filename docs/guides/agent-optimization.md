@@ -51,7 +51,7 @@ After sleeping 3 seconds:
 ```bash
 curl -X POST http://localhost:9867/navigate \
   -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com"}' && \
+  -d '{"url": "https://pinchtab.com"}' && \
 sleep 3 && \
 curl http://localhost:9867/snapshot | \
 jq '.nodes[] | select(.name | length > 15) | .name' | \

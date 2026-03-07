@@ -12,8 +12,8 @@ import (
 
 // ER5: Unicode content handling
 func TestError_UnicodeContent(t *testing.T) {
-	// Navigate to a page with Unicode (CJK/emoji/RTL)
-	navigate(t, "https://www.wikipedia.org")
+	// Navigate to a local page with Unicode
+	navigate(t, fixtureURL(t, "/unicode"))
 
 	// Test snapshot
 	code, snapBody := httpGet(t, "/snapshot?tabId="+currentTabID)
@@ -72,25 +72,20 @@ func TestError_EmptyPage(t *testing.T) {
 
 // ER3: Binary page (PDF) handling
 func TestError_BinaryPage(t *testing.T) {
-	// Navigate to a PDF
-	navigate(t, "https://www.w3.org/WAI/WCAG21/Techniques/pdf/pdf_files/techniques.pdf")
+	// Navigate to a local PDF
+	navigate(t, fixtureURL(t, "/binary.pdf"))
 
-	// Verify navigation completes (any status code, not a hang)
-	// The navigate() helper will fail if the request hangs
+	// Verify navigation completes
 	t.Logf("navigation to PDF completed successfully")
 
 	// Test snapshot on PDF content
-	// PDF may not render as a traditional page, so snapshot might fail or return empty
-	// We just verify it doesn't crash and returns gracefully
 	code, snapBody := httpGet(t, "/snapshot?tabId="+currentTabID)
 	if code == 200 {
-		// Verify response is valid JSON (even if empty/error)
 		var snapData map[string]any
 		if err := json.Unmarshal(snapBody, &snapData); err != nil {
 			t.Errorf("snapshot response is not valid JSON: %v", err)
 		}
 	} else if code >= 400 && code < 500 {
-		// Client error is acceptable for binary content
 		t.Logf("snapshot returned %d (acceptable for PDF)", code)
 	} else {
 		t.Errorf("snapshot failed with unexpected code %d", code)
@@ -104,7 +99,6 @@ func TestError_BinaryPage(t *testing.T) {
 			t.Errorf("text response is not valid JSON: %v", err)
 		}
 	} else if code >= 400 && code < 500 {
-		// Client error is acceptable for binary content
 		t.Logf("text returned %d (acceptable for PDF)", code)
 	} else {
 		t.Errorf("text failed with unexpected code %d", code)
@@ -114,11 +108,11 @@ func TestError_BinaryPage(t *testing.T) {
 // ER4: Rapid navigation stress test
 func TestError_RapidNavigate(t *testing.T) {
 	urls := []string{
-		"https://example.com",
-		"https://httpbin.org",
-		"https://example.com",
-		"https://httpbin.org",
-		"https://example.com",
+		fixtureURL(t, "/page1"),
+		fixtureURL(t, "/page2"),
+		fixtureURL(t, "/slow"),
+		fixtureURL(t, "/page1"),
+		fixtureURL(t, "/page2"),
 	}
 
 	// Use a WaitGroup to ensure all navigations complete
@@ -133,6 +127,7 @@ func TestError_RapidNavigate(t *testing.T) {
 		wg.Add(1)
 		go func(idx int, u string) {
 			defer wg.Done()
+			// Use local navigate logic to avoid tabId closure in loop
 			code, _ := httpPost(t, "/navigate", map[string]string{"url": u})
 			if code != 200 {
 				mu.Lock()
@@ -146,9 +141,9 @@ func TestError_RapidNavigate(t *testing.T) {
 	wg.Wait()
 	elapsed := time.Since(startTime)
 
-	// Check that navigations completed quickly (within 5 seconds for rapid test)
+	// Check that navigations completed quickly
 	if elapsed > 5*time.Second {
-		t.Logf("rapid navigation took %v (slower than expected but acceptable)", elapsed)
+		t.Logf("rapid navigation took %v", elapsed)
 	}
 
 	// Verify no critical errors occurred
@@ -158,8 +153,7 @@ func TestError_RapidNavigate(t *testing.T) {
 		}
 	}
 
-	// Verify final page is example.com (last navigate wins)
-	// Wait a bit for the last navigation to settle
+	// Verify server didn't crash
 	time.Sleep(500 * time.Millisecond)
 
 	code, snapBody := httpGet(t, "/snapshot")
@@ -168,8 +162,6 @@ func TestError_RapidNavigate(t *testing.T) {
 		if err := json.Unmarshal(snapBody, &snapData); err != nil {
 			t.Errorf("snapshot response is not valid JSON: %v", err)
 		}
-		// Note: We can't easily verify the exact URL without accessing browser state,
-		// but the important check is that we get a valid response (server didn't crash)
 	} else {
 		t.Errorf("snapshot failed with code %d", code)
 	}

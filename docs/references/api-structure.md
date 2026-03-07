@@ -110,13 +110,13 @@ curl -X POST http://localhost:9867/tabs/tab_xyz789/action \
 **OLD:**
 ```bash
 curl -X POST http://localhost:9867/instances/inst_abc123/navigate \
-  -d '{"url": "https://example.com"}'
+  -d '{"url": "https://pinchtab.com"}'
 ```
 
 **NEW:**
 ```bash
 curl -X POST http://localhost:9867/tabs/tab_xyz789/navigate \
-  -d '{"url": "https://example.com"}'
+  -d '{"url": "https://pinchtab.com"}'
 ```
 
 ---
@@ -177,7 +177,7 @@ curl 'http://localhost:9867/tabs?instanceId=inst_abc123'
 # Navigate with options
 curl -X POST http://localhost:9867/tabs/tab_xyz/navigate \
   -d '{
-    "url": "https://example.com",
+    "url": "https://pinchtab.com",
     "timeout": 30,
     "blockImages": true,
     "blockAds": false
@@ -289,7 +289,7 @@ pinchtab tabs
 pinchtab --instance inst_abc123 tabs
 
 # Create tab
-pinchtab --instance inst_abc123 tab new https://example.com
+pinchtab --instance inst_abc123 tab new https://pinchtab.com
 # → tab_xyz789
 
 # Close tab
@@ -299,7 +299,7 @@ pinchtab --tab tab_xyz789 close
 ### Tab Operations
 ```bash
 # Navigate
-pinchtab --tab tab_xyz789 nav https://example.com
+pinchtab --tab tab_xyz789 nav https://pinchtab.com
 
 # Snapshot
 pinchtab --tab tab_xyz789 snap -i -c
@@ -348,7 +348,7 @@ TAB=$(pinchtab --instance $INST tab new | jq -r .id)
 ### Work
 ```bash
 # 4. Navigate
-pinchtab --tab $TAB nav https://example.com
+pinchtab --tab $TAB nav https://pinchtab.com
 
 # 5. Get page structure
 pinchtab --tab $TAB snap -i -c | jq .

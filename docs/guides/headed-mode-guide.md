@@ -355,13 +355,13 @@ For agents to show up with a name in the dashboard instead of "anonymous", they 
 curl -X POST http://localhost:9867/instances/$INST/navigate \
   -H "X-Agent-Id: mario" \
   -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com"}'
+  -d '{"url": "https://pinchtab.com"}'
 
 # Or directly to instance
 curl -X POST http://localhost:9868/navigate \
   -H "X-Agent-Id: mario" \
   -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com"}'
+  -d '{"url": "https://pinchtab.com"}'
 ```
 
 That's all it takes. The `X-Agent-Id` header tags every request, and the dashboard tracks it automatically. No registration, no config — just a header.
@@ -415,7 +415,7 @@ No SSH tunnels. No VPN. No complex setup. Just a browser and a token.
 curl -X POST http://orchestrator:9867/instances/$INST/navigate \
   -H "X-Agent-Id: mario" \
   -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com"}'
+  -d '{"url": "https://pinchtab.com"}'
 ```
 
 The dashboard automatically tracks which agent is doing what, where, and when.

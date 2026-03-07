@@ -8,7 +8,7 @@ import (
 
 // E1: Simple eval
 func TestEval_Simple(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	code, body := httpPost(t, "/evaluate", map[string]string{
 		"tabId":      currentTabID,
 		"expression": "1+1",
@@ -24,7 +24,7 @@ func TestEval_Simple(t *testing.T) {
 
 // E2: DOM eval
 func TestEval_DOM(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	code, body := httpPost(t, "/evaluate", map[string]string{
 		"tabId":      currentTabID,
 		"expression": "document.title",

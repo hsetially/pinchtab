@@ -239,7 +239,7 @@ ssh -L 9222:remote-chrome:9222 user@remote-host &
 export CDP_URL="ws://localhost:9222/..."
 
 # Or direct (less secure)
-export CDP_URL="ws://remote-chrome.example.com:9222/..."
+export CDP_URL="ws://remote-chrome.pinchtab.com:9222/..."
 ```
 
 ## Configuration Reference

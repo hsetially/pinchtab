@@ -22,9 +22,10 @@ COMMANDS=(
   "  check dashboard:🧪:Dashboard only"
   "  check security:🧪:Gosec security scan"
   "  check docs:🧪:Validate docs JSON"
-  "test:🔬:All tests (unit + integration)"
+  "test:🔬:All tests (unit + integration + system)"
   "  test unit:🔬:Unit tests only"
   "  test integration:🔬:Integration tests only"
+  "  test system:🔬:System tests only"
   "build:🚀:Build & run (default)"
   "doctor:🩺:Setup dev environment"
   "hooks:🪝:Install git hooks"
@@ -79,6 +80,16 @@ run_command() {
       echo ""
       exec bash scripts/check-dashboard.sh
       ;;
+    "check security")
+      echo "  ${ACCENT}${BOLD}🔒 Security scan${NC}"
+      echo ""
+      exec bash scripts/check-gosec.sh
+      ;;
+    "check docs")
+      echo "  ${ACCENT}${BOLD}📖 Docs validation${NC}"
+      echo ""
+      exec bash scripts/check-docs-json.sh
+      ;;
     "test")
       echo "  ${ACCENT}${BOLD}🔬 All tests${NC}"
       echo ""
@@ -94,15 +105,10 @@ run_command() {
       echo ""
       exec bash scripts/test.sh integration
       ;;
-    "check security")
-      echo "  ${ACCENT}${BOLD}🔒 Security scan${NC}"
+    "test system")
+      echo "  ${ACCENT}${BOLD}🔬 System tests${NC}"
       echo ""
-      exec bash scripts/check-gosec.sh
-      ;;
-    "check docs")
-      echo "  ${ACCENT}${BOLD}📖 Docs validation${NC}"
-      echo ""
-      exec bash scripts/check-docs-json.sh
+      exec bash scripts/test.sh system
       ;;
     "build")        exec bash scripts/dev.sh ;;
     "doctor")       exec bash scripts/doctor.sh ;;
@@ -139,6 +145,8 @@ pick_with_gum() {
   # Extract command name (first non-space word(s) after optional emoji)
   local picked
   picked=$(echo "$choice" | sed 's/^[^a-z]*//' | awk '{if ($2 ~ /^[a-z]/) print $1, $2; else print $1}')
+  # Clear the picker before streaming command output.
+  printf '\033[2J\033[H'
   run_command "$picked"
 }
 
@@ -153,9 +161,9 @@ pick_with_select() {
     IFS=':' read -r name emoji desc <<< "$cmd"
     local trimmed="${name#"${name%%[![:space:]]*}"}"
     if [[ "$name" == " "* ]]; then
-      printf "  ${MUTED}[%2d]${NC}     ${BOLD}%-18s${NC} ${MUTED}%s${NC}\n" "$i" "$trimmed" "$desc"
+      printf "  ${MUTED}[%3d]${NC}     ${BOLD}%-18s${NC} ${MUTED}%s${NC}\n" "$i" "$trimmed" "$desc"
     else
-      printf "  ${MUTED}[%2d]${NC} ${SUCCESS}%s${NC} ${BOLD}%-18s${NC} ${MUTED}%s${NC}\n" "$i" "$emoji" "$trimmed" "$desc"
+      printf "  ${MUTED}[%3d]${NC} ${SUCCESS}%s${NC} ${BOLD}%-18s${NC} ${MUTED}%s${NC}\n" "$i" "$emoji" "$trimmed" "$desc"
     fi
     names+=("$trimmed")
     i=$((i + 1))

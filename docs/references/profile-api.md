@@ -342,7 +342,7 @@ curl 'http://localhost:9867/profiles/my-profile/logs?limit=1000'
   {
     "timestamp": "2026-03-01T05:12:45Z",
     "action": "navigate",
-    "url": "https://example.com"
+    "url": "https://pinchtab.com"
   },
   {
     "timestamp": "2026-03-01T05:12:50Z",
@@ -388,7 +388,7 @@ curl http://localhost:9867/profiles/my-profile/analytics
   },
   "lastUsed": "2026-03-01T05:12:50Z",
   "commonHosts": [
-    "example.com",
+    "pinchtab.com",
     "google.com",
     "github.com"
   ],

@@ -32,7 +32,7 @@ func TestNavigatePage_ContextCancelled(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	err := NavigatePage(ctx, "https://example.com")
+	err := NavigatePage(ctx, "https://pinchtab.com")
 	if err == nil {
 		t.Error("expected error for cancelled context")
 	}

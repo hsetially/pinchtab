@@ -55,7 +55,7 @@ func TestMarkCleanExit_NoPatch(t *testing.T) {
 func TestSessionState_Marshal(t *testing.T) {
 	state := SessionState{
 		Tabs: []TabState{
-			{ID: "tab1", URL: "https://example.com", Title: "Example"},
+			{ID: "tab1", URL: "https://pinchtab.com", Title: "Example"},
 			{ID: "tab2", URL: "https://google.com", Title: "Google"},
 		},
 		SavedAt: "2026-02-17T07:00:00Z",
@@ -74,8 +74,8 @@ func TestSessionState_Marshal(t *testing.T) {
 	if len(decoded.Tabs) != 2 {
 		t.Errorf("expected 2 tabs, got %d", len(decoded.Tabs))
 	}
-	if decoded.Tabs[0].URL != "https://example.com" {
-		t.Errorf("expected example.com, got %s", decoded.Tabs[0].URL)
+	if decoded.Tabs[0].URL != "https://pinchtab.com" {
+		t.Errorf("expected pinchtab.com, got %s", decoded.Tabs[0].URL)
 	}
 }
 
@@ -145,7 +145,7 @@ func TestIsTransientURL(t *testing.T) {
 	}
 
 	persistent := []string{
-		"https://example.com",
+		"https://pinchtab.com",
 		"https://github.com/pinchtab/pinchtab",
 		"https://www.google.com/search?q=test",
 		"https://httpbin.org/get",

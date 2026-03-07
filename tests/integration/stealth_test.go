@@ -10,7 +10,7 @@ import (
 
 // ST1: Webdriver is hidden (undefined)
 func TestStealth_WebdriverUndefined(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	// Poll for stealth injection to complete instead of fixed sleep
 	// This is more reliable than a fixed wait across different CI runners
 	for retry := 0; retry < 10; retry++ {
@@ -40,7 +40,7 @@ func TestStealth_WebdriverUndefined(t *testing.T) {
 
 // ST3: Plugins are present
 func TestStealth_PluginsPresent(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	// Poll for stealth injection instead of fixed sleep
 	for retry := 0; retry < 10; retry++ {
 		code, body := httpPost(t, "/evaluate", map[string]string{
@@ -64,7 +64,7 @@ func TestStealth_PluginsPresent(t *testing.T) {
 
 // ST4: Chrome runtime is present
 func TestStealth_ChromeRuntimePresent(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	// Poll for stealth injection instead of fixed sleep
 	for retry := 0; retry < 10; retry++ {
 		code, body := httpPost(t, "/evaluate", map[string]string{
@@ -88,7 +88,7 @@ func TestStealth_ChromeRuntimePresent(t *testing.T) {
 
 // ST5: Fingerprint rotation with specific OS
 func TestStealth_FingerprintRotate(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 
 	// Get initial user agent
 	code1, body1 := httpPost(t, "/evaluate", map[string]string{
@@ -134,7 +134,7 @@ func TestStealth_FingerprintRotate(t *testing.T) {
 
 // ST6: Fingerprint rotation without OS specified (random)
 func TestStealth_FingerprintRotateRandom(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 
 	// Rotate fingerprint with empty body (random OS)
 	code, body := httpPost(t, "/fingerprint/rotate", map[string]string{"tabId": currentTabID})
@@ -151,7 +151,7 @@ func TestStealth_FingerprintRotateRandom(t *testing.T) {
 
 // ST7: Fingerprint rotation on specific tab
 func TestStealth_FingerprintRotateSpecificTab(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 
 	// Get tab ID from tabs list
 	code1, tabsBody := httpGet(t, "/tabs")

@@ -9,7 +9,7 @@ import (
 
 // C1: Get cookies
 func TestCookies_Get(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	code, body := httpGet(t, "/cookies?tabId="+currentTabID)
 	if code != 200 {
 		t.Fatalf("expected 200, got %d (body: %s)", code, body)
@@ -53,12 +53,12 @@ func TestCookies_Get(t *testing.T) {
 
 // C2: Set cookies
 func TestCookies_Set(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 
 	// Set a cookie
 	code, body := httpPost(t, "/cookies", map[string]any{
 		"tabId": currentTabID,
-		"url":   "https://example.com",
+		"url":   examplePageURL(t),
 		"cookies": []map[string]any{
 			{
 				"name":  "test_cookie",
@@ -84,7 +84,7 @@ func TestCookies_Set(t *testing.T) {
 	}
 
 	// Verify the cookie was set by getting cookies again
-	code2, body2 := httpGet(t, "/cookies?url=https://example.com&tabId="+currentTabID)
+	code2, body2 := httpGet(t, "/cookies?url="+examplePageURL(t)+"&tabId="+currentTabID)
 	if code2 != 200 {
 		t.Fatalf("GET /cookies failed: %d", code2)
 	}
@@ -129,7 +129,7 @@ func TestCookies_GetNoTab(t *testing.T) {
 
 // C4: Set cookies bad JSON
 func TestCookies_SetBadJSON(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 
 	code, body := httpPostRaw(t, "/cookies", "{broken")
 	if code != 400 {
@@ -139,12 +139,12 @@ func TestCookies_SetBadJSON(t *testing.T) {
 
 // C5: Set cookies empty
 func TestCookies_SetEmpty(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 
 	// Post with empty cookies array
 	code, body := httpPost(t, "/cookies", map[string]any{
 		"tabId":   currentTabID,
-		"url":     "https://example.com",
+		"url":     examplePageURL(t),
 		"cookies": []map[string]any{},
 	})
 

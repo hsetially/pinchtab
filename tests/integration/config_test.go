@@ -23,7 +23,7 @@ func extractChromeVersion(ua string) string {
 // CF7: Chrome version default
 // Navigate, eval navigator.userAgent, verify it contains a valid Chrome version.
 func TestConfig_ChromeVersionDefault(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 
 	code, body := httpPost(t, "/evaluate", map[string]string{
 		"tabId":      currentTabID,
@@ -54,7 +54,7 @@ func TestConfig_ChromeVersionDefault(t *testing.T) {
 // CF8: Chrome version in fingerprint
 // Navigate, POST /fingerprint/rotate, verify UA still contains the same Chrome version.
 func TestConfig_ChromeVersionInFingerprint(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 
 	// Get initial user agent
 	code1, body1 := httpPost(t, "/evaluate", map[string]string{
@@ -115,7 +115,7 @@ func TestConfig_ChromeVersionInFingerprint(t *testing.T) {
 func TestConfig_ConfigFilePreference(t *testing.T) {
 	// If we reach here, the server has already started successfully.
 	// This test verifies that config file loading works by attempting basic operations.
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 
 	code, body := httpPost(t, "/evaluate", map[string]string{
 		"tabId":      currentTabID,
@@ -139,7 +139,7 @@ func TestConfig_ConfigFilePreference(t *testing.T) {
 func TestConfig_EnvOverridesConfig(t *testing.T) {
 	// The test harness already starts the server with BRIDGE_PORT set via env var.
 	// If we can connect to the server and it responds, this proves env vars work.
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 
 	code, body := httpPost(t, "/evaluate", map[string]string{
 		"tabId":      currentTabID,

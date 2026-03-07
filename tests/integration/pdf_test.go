@@ -23,7 +23,7 @@ func tabPDFPath(t *testing.T, query string) string {
 
 // PD1: PDF base64
 func TestPDF_Base64(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	code, body := httpGet(t, tabPDFPath(t, ""))
 	if code != 200 {
 		t.Fatalf("expected 200, got %d", code)
@@ -44,7 +44,7 @@ func TestPDF_Base64(t *testing.T) {
 
 // PD2: PDF raw bytes
 func TestPDF_Raw(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	code, body := httpGet(t, tabPDFPath(t, "raw=true"))
 	if code != 200 {
 		t.Fatalf("expected 200, got %d", code)
@@ -56,7 +56,7 @@ func TestPDF_Raw(t *testing.T) {
 
 // PD3: PDF save to file (uses default state dir)
 func TestPDF_SaveFile(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	code, body := httpGet(t, tabPDFPath(t, "output=file"))
 	if code != 200 {
 		t.Fatalf("expected 200, got %d (body: %s)", code, body)
@@ -79,7 +79,7 @@ func TestPDF_SaveFile(t *testing.T) {
 
 // PD5: PDF landscape
 func TestPDF_Landscape(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	code, body := httpGet(t, tabPDFPath(t, "landscape=true&raw=true"))
 	if code != 200 {
 		t.Fatalf("expected 200, got %d", code)
@@ -91,7 +91,7 @@ func TestPDF_Landscape(t *testing.T) {
 
 // PD6: PDF scale
 func TestPDF_Scale(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	code, body := httpGet(t, tabPDFPath(t, "scale=0.5&raw=true"))
 	if code != 200 {
 		t.Fatalf("expected 200, got %d", code)
@@ -103,7 +103,7 @@ func TestPDF_Scale(t *testing.T) {
 
 // PD7: PDF with custom paper size
 func TestPDF_CustomPaperSize(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	code, body := httpGet(t, tabPDFPath(t, "paperWidth=7&paperHeight=9&raw=true"))
 	if code != 200 {
 		t.Fatalf("expected 200, got %d", code)
@@ -115,7 +115,7 @@ func TestPDF_CustomPaperSize(t *testing.T) {
 
 // PD8: PDF with custom margins
 func TestPDF_CustomMargins(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	code, body := httpGet(t, tabPDFPath(t, "marginTop=0.75&marginLeft=0.75&marginRight=0.75&marginBottom=0.75&raw=true"))
 	if code != 200 {
 		t.Fatalf("expected 200, got %d", code)
@@ -127,7 +127,7 @@ func TestPDF_CustomMargins(t *testing.T) {
 
 // PD9: PDF with page ranges
 func TestPDF_PageRanges(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	code, body := httpGet(t, tabPDFPath(t, "pageRanges=1&raw=true"))
 	if code != 200 {
 		t.Fatalf("expected 200, got %d", code)
@@ -139,7 +139,7 @@ func TestPDF_PageRanges(t *testing.T) {
 
 // PD10: PDF with header/footer
 func TestPDF_HeaderFooter(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	code, body := httpGet(t, tabPDFPath(t, "displayHeaderFooter=true&headerTemplate=%3Cspan%20class=url%3E%3C/span%3E&raw=true"))
 	if code != 200 {
 		t.Fatalf("expected 200, got %d", code)
@@ -151,7 +151,7 @@ func TestPDF_HeaderFooter(t *testing.T) {
 
 // PD11: PDF with accessibility and outline
 func TestPDF_AccessiblePDF(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	code, body := httpGet(t, tabPDFPath(t, "generateTaggedPDF=true&generateDocumentOutline=true&raw=true"))
 	if code != 200 {
 		t.Fatalf("expected 200, got %d", code)
@@ -163,7 +163,7 @@ func TestPDF_AccessiblePDF(t *testing.T) {
 
 // PD12: PDF with preferCSSPageSize
 func TestPDF_PreferCSSPageSize(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	code, body := httpGet(t, tabPDFPath(t, "preferCSSPageSize=true&raw=true"))
 	if code != 200 {
 		t.Fatalf("expected 200, got %d", code)

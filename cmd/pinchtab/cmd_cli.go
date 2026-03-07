@@ -83,7 +83,7 @@ ENVIRONMENT:
   BRIDGE_HEADLESS      Run Chrome headless (default: true)
 
 Examples:
-  pinchtab nav https://example.com
+  pinchtab nav https://pinchtab.com
   pinchtab snap -i -c
   pinchtab click e5
   pinchtab type e12 hello world
@@ -176,7 +176,7 @@ QUICK START:
 
 WORKFLOW:
   1. Start server:        pinchtab                  (runs on :9867)
-  2. Navigate:           pinchtab nav https://example.com
+  2. Navigate:           pinchtab nav https://pinchtab.com
   3. See page:           pinchtab snap             (shows clickable refs)
   4. Interact:           pinchtab click e5         (click element)
   5. Check result:       pinchtab snap             (see changes)

@@ -109,7 +109,7 @@ func TestOrchestrator_HashBasedIDs(t *testing.T) {
 	time.Sleep(2 * time.Second)
 
 	// Navigate to create tab
-	navStatus, navBody, tabID := navigateInstance(t, instID, "https://example.com")
+	navStatus, navBody, tabID := navigateInstance(t, instID, examplePageURL(t))
 	if navStatus != 200 {
 		t.Fatalf("navigate failed: %d: %s", navStatus, string(navBody))
 	}
@@ -239,13 +239,13 @@ func TestOrchestrator_InstanceIsolation(t *testing.T) {
 	time.Sleep(2 * time.Second)
 
 	// Navigate on instance 1
-	status, navBody, tabID1 := navigateInstance(t, instIDs[0], "https://example.com")
+	status, navBody, tabID1 := navigateInstance(t, instIDs[0], examplePageURL(t))
 	if status != 200 {
 		t.Fatalf("navigate instance 1 failed: %d: %s", status, string(navBody))
 	}
 
 	// Navigate on instance 2
-	status, navBody, tabID2 := navigateInstance(t, instIDs[1], "https://github.com")
+	status, navBody, tabID2 := navigateInstance(t, instIDs[1], moreInfoPageURL(t))
 	if status != 200 {
 		t.Fatalf("navigate instance 2 failed: %d: %s", status, string(navBody))
 	}
@@ -325,7 +325,7 @@ func TestOrchestrator_ProxyRouting(t *testing.T) {
 	time.Sleep(2 * time.Second)
 
 	// Test navigation via orchestrator proxy
-	status, body, tabID := navigateInstance(t, instID, "https://example.com")
+	status, body, tabID := navigateInstance(t, instID, examplePageURL(t))
 	if status != 200 {
 		t.Fatalf("proxy navigate failed: %d: %s", status, string(body))
 	}
@@ -398,12 +398,12 @@ func TestOrchestrator_ProxyRouting(t *testing.T) {
 	}
 
 	// Test cookies via orchestrator tab route
-	status, body = httpGet(t, fmt.Sprintf("/tabs/%s/cookies?url=https://example.com", tabID))
+	status, body = httpGet(t, fmt.Sprintf("/tabs/%s/cookies?url=%s", tabID, examplePageURL(t)))
 	if status != 200 {
 		t.Fatalf("proxy get cookies failed: %d: %s", status, string(body))
 	}
 	status, body = httpPost(t, fmt.Sprintf("/tabs/%s/cookies", tabID), map[string]any{
-		"url": "https://example.com",
+		"url": examplePageURL(t),
 		"cookies": []map[string]any{
 			{"name": "orch_test_cookie", "value": "1"},
 		},
@@ -499,7 +499,7 @@ func TestOrchestrator_FirstRequestLazyChrome(t *testing.T) {
 	}
 
 	// Now make the actual proxy request - Chrome is already initialized
-	status, body, tabID := navigateInstance(t, instID, "https://example.com")
+	status, body, tabID := navigateInstance(t, instID, examplePageURL(t))
 	if status != 200 {
 		t.Fatalf("navigate failed: %d: %s", status, string(body))
 	}
@@ -542,7 +542,7 @@ func TestOrchestrator_AggregateTabsEndpoint(t *testing.T) {
 
 	// Navigate on each instance
 	for _, instID := range instIDs {
-		httpStatus, navBody, _ := navigateInstance(t, instID, "https://example.com")
+		httpStatus, navBody, _ := navigateInstance(t, instID, examplePageURL(t))
 		if httpStatus != 200 {
 			t.Fatalf("navigate failed for %s: %d: %s", instID, httpStatus, string(navBody))
 		}

@@ -73,7 +73,7 @@ func TestCLINavigate(t *testing.T) {
 	defer m.close()
 	client := m.server.Client()
 
-	cliNavigate(client, m.base(), "", []string{"https://example.com"})
+	cliNavigate(client, m.base(), "", []string{"https://pinchtab.com"})
 	if m.lastMethod != "POST" {
 		t.Errorf("expected POST, got %s", m.lastMethod)
 	}
@@ -82,8 +82,8 @@ func TestCLINavigate(t *testing.T) {
 	}
 	var body map[string]any
 	_ = json.Unmarshal([]byte(m.lastBody), &body)
-	if body["url"] != "https://example.com" {
-		t.Errorf("expected url=https://example.com, got %v", body["url"])
+	if body["url"] != "https://pinchtab.com" {
+		t.Errorf("expected url=https://pinchtab.com, got %v", body["url"])
 	}
 }
 
@@ -92,7 +92,7 @@ func TestCLINavigateWithFlags(t *testing.T) {
 	defer m.close()
 	client := m.server.Client()
 
-	cliNavigate(client, m.base(), "", []string{"https://example.com", "--new-tab", "--block-images"})
+	cliNavigate(client, m.base(), "", []string{"https://pinchtab.com", "--new-tab", "--block-images"})
 	var body map[string]any
 	_ = json.Unmarshal([]byte(m.lastBody), &body)
 	if body["newTab"] != true {
@@ -108,7 +108,7 @@ func TestCLINavigateWithBlockAds(t *testing.T) {
 	defer m.close()
 	client := m.server.Client()
 
-	cliNavigate(client, m.base(), "", []string{"https://example.com", "--block-ads"})
+	cliNavigate(client, m.base(), "", []string{"https://pinchtab.com", "--block-ads"})
 	var body map[string]any
 	_ = json.Unmarshal([]byte(m.lastBody), &body)
 	if body["blockAds"] != true {
@@ -122,7 +122,7 @@ func TestCLIInstanceNavigateUsesTabRoute(t *testing.T) {
 	defer m.close()
 	client := m.server.Client()
 
-	cliInstanceNavigate(client, m.base(), "", []string{"inst-123", "https://example.com"})
+	cliInstanceNavigate(client, m.base(), "", []string{"inst-123", "https://pinchtab.com"})
 
 	if m.lastMethod != "POST" {
 		t.Errorf("expected POST, got %s", m.lastMethod)
@@ -133,7 +133,7 @@ func TestCLIInstanceNavigateUsesTabRoute(t *testing.T) {
 
 	var body map[string]any
 	_ = json.Unmarshal([]byte(m.lastBody), &body)
-	if body["url"] != "https://example.com" {
+	if body["url"] != "https://pinchtab.com" {
 		t.Errorf("expected navigate URL in body, got %v", body["url"])
 	}
 }
@@ -323,7 +323,7 @@ func TestCLISelect(t *testing.T) {
 
 func TestCLIText(t *testing.T) {
 	m := newMockServer()
-	m.response = `{"url":"https://example.com","title":"Example","text":"Hello"}`
+	m.response = `{"url":"https://pinchtab.com","title":"Example","text":"Hello"}`
 	defer m.close()
 	client := m.server.Client()
 
@@ -359,7 +359,7 @@ func TestCLITextTab(t *testing.T) {
 
 func TestCLITabsList(t *testing.T) {
 	m := newMockServer()
-	m.response = `[{"id":"TAB1","url":"https://example.com"}]`
+	m.response = `[{"id":"TAB1","url":"https://pinchtab.com"}]`
 	defer m.close()
 	client := m.server.Client()
 
@@ -374,7 +374,7 @@ func TestCLITabsNew(t *testing.T) {
 	defer m.close()
 	client := m.server.Client()
 
-	cliTabs(client, m.base(), "", []string{"new", "https://example.com"})
+	cliTabs(client, m.base(), "", []string{"new", "https://pinchtab.com"})
 	if m.lastPath != "/tab" {
 		t.Errorf("expected /tab, got %s", m.lastPath)
 	}
@@ -383,7 +383,7 @@ func TestCLITabsNew(t *testing.T) {
 	if body["action"] != "new" {
 		t.Errorf("expected action=new, got %v", body["action"])
 	}
-	if body["url"] != "https://example.com" {
+	if body["url"] != "https://pinchtab.com" {
 		t.Errorf("expected url, got %v", body["url"])
 	}
 }

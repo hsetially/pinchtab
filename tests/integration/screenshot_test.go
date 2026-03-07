@@ -10,7 +10,7 @@ import (
 // Note: May timeout in CI if headless Chrome has display limitations.
 // See tests/manual/screenshot-basic.md for headed Chrome testing.
 func TestScreenshot_Basic(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	code, body := httpGet(t, "/screenshot")
 	if code != 200 {
 		t.Skipf("screenshot returned %d (headless display limitation), skipping", code)
@@ -25,7 +25,7 @@ func TestScreenshot_Basic(t *testing.T) {
 // Note: May skip in CI if headless Chrome has display limitations.
 // See tests/manual/screenshot-raw.md for headed Chrome testing.
 func TestScreenshot_Raw(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	code, body := httpGet(t, "/screenshot?raw=true")
 	if code != 200 {
 		t.Skipf("screenshot raw returned %d (headless display limitation), skipping", code)

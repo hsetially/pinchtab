@@ -17,7 +17,7 @@ curl http://localhost:9867/tabs | jq .
   {
     "id": "tab_abc123",
     "instanceId": "inst_xyz",
-    "url": "https://example.com",
+    "url": "https://pinchtab.com",
     "title": "Example Domain",
     "status": "ready"
   }
@@ -27,17 +27,17 @@ curl http://localhost:9867/tabs | jq .
 ### Open a New Tab
 ```bash
 # CLI (create new tab in instance)
-pinchtab tab open inst_xyz https://example.com
+pinchtab tab open inst_xyz https://pinchtab.com
 
 # Curl
 curl -X POST http://localhost:9867/instances/{id}/tabs/open \
   -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com"}'
+  -d '{"url": "https://pinchtab.com"}'
 
 # Response
 {
   "tabId": "tab_abc123",
-  "url": "https://example.com",
+  "url": "https://pinchtab.com",
   "title": "Example Domain"
 }
 ```
@@ -54,7 +54,7 @@ curl http://localhost:9867/tabs/tab_abc123
 {
   "id": "tab_abc123",
   "instanceId": "inst_xyz",
-  "url": "https://example.com",
+  "url": "https://pinchtab.com",
   "title": "Example Domain",
   "status": "ready"
 }
@@ -119,7 +119,7 @@ tab_abc12345
 **CLI:**
 ```bash
 # Create tab in instance with URL
-pinchtab tab open inst_xyz https://example.com
+pinchtab tab open inst_xyz https://pinchtab.com
 
 # Create tab without initial URL
 pinchtab tab open inst_xyz
@@ -135,13 +135,13 @@ curl -X POST http://localhost:9867/instances/{id}/tabs/open \
 # With URL
 curl -X POST http://localhost:9867/instances/{id}/tabs/open \
   -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com"}'
+  -d '{"url": "https://pinchtab.com"}'
 ```
 
 **Request Body:**
 ```json
 {
-  "url": "https://example.com"
+  "url": "https://pinchtab.com"
 }
 ```
 
@@ -152,7 +152,7 @@ curl -X POST http://localhost:9867/instances/{id}/tabs/open \
 ```json
 {
   "tabId": "tab_abc123",
-  "url": "https://example.com",
+  "url": "https://pinchtab.com",
   "title": "Example Domain"
 }
 ```
@@ -190,7 +190,7 @@ curl 'http://localhost:9867/tabs?instanceId=inst_xyz' | jq .
   {
     "id": "tab_abc123",
     "instanceId": "inst_xyz",
-    "url": "https://example.com",
+    "url": "https://pinchtab.com",
     "title": "Example Domain",
     "status": "ready",
     "createdAt": "2026-03-01T05:25:30Z"
@@ -232,7 +232,7 @@ curl http://localhost:9867/tabs/tab_abc123 | jq .
 {
   "id": "tab_abc123",
   "instanceId": "inst_xyz",
-  "url": "https://example.com",
+  "url": "https://pinchtab.com",
   "title": "Example Domain",
   "status": "ready",
   "createdAt": "2026-03-01T05:25:30Z"
@@ -286,7 +286,7 @@ INST=$(pinchtab instance start --mode headed | jq -r .id)
 echo "Instance: $INST"
 
 # Open first tab
-TAB1=$(pinchtab tab open $INST https://example.com | jq -r .id)
+TAB1=$(pinchtab tab open $INST https://pinchtab.com | jq -r .id)
 echo "Tab 1: $TAB1"
 
 # Open second tab
@@ -320,7 +320,7 @@ pinchtab instance stop $INST
 
 INST=$1
 URLS=(
-  "https://example.com"
+  "https://pinchtab.com"
   "https://google.com"
   "https://github.com"
   "https://stackoverflow.com"
@@ -368,7 +368,7 @@ TAB=$(pinchtab tab open $INST | jq -r .id)
 echo "Tab: $TAB"
 
 # Navigate through multiple sites
-SITES=("example.com" "google.com" "github.com")
+SITES=("pinchtab.com" "google.com" "github.com")
 
 for site in "${SITES[@]}"; do
   echo "Navigating to $site..."
@@ -393,7 +393,7 @@ pinchtab instance stop $INST
 pinchtab instances
 
 # Open tab in instance
-pinchtab tab open inst_abc123 https://example.com
+pinchtab tab open inst_abc123 https://pinchtab.com
 
 # List all tabs
 pinchtab tabs
@@ -408,7 +408,7 @@ pinchtab tab info tab_xyz789
 pinchtab tab close tab_xyz789
 
 # Open multiple tabs
-for url in example.com google.com github.com; do
+for url in pinchtab.com google.com github.com; do
   pinchtab tab open inst_abc123 https://$url
 done
 ```
@@ -424,7 +424,7 @@ done
 INST=$(pinchtab instance start --mode headed | jq -r .id)
 
 TAB1=$(curl -s -X POST "http://localhost:9867/instances/$INST/tabs/open" \
-  -d "{\"url\":\"https://example.com\"}" | jq -r .tabId)
+  -d "{\"url\":\"https://pinchtab.com\"}" | jq -r .tabId)
 
 TAB2=$(curl -s -X POST "http://localhost:9867/instances/$INST/tabs/open" \
   -d "{\"url\":\"https://google.com\"}" | jq -r .tabId)
@@ -447,7 +447,7 @@ inst_id = inst_resp.json()["id"]
 print(f"Instance: {inst_id}")
 
 # Open tabs
-for url in ["https://example.com", "https://google.com"]:
+for url in ["https://pinchtab.com", "https://google.com"]:
   resp = requests.post(f"{BASE}/instances/{inst_id}/tabs/open",
     json={"url": url})
   tab = resp.json()
@@ -481,7 +481,7 @@ async function tabWorkflow() {
   console.log(`Instance: ${inst.id}`);
 
   // Open tabs
-  const urls = ["https://example.com", "https://google.com"];
+  const urls = ["https://pinchtab.com", "https://google.com"];
   const tabs = [];
 
   for (const url of urls) {
@@ -518,7 +518,7 @@ tabWorkflow().catch(console.error);
 
 ```bash
 curl -X POST http://localhost:9867/instances/{id}/tabs/open \
-  -d '{"url":"https://example.com"}'
+  -d '{"url":"https://pinchtab.com"}'
 
 # Response (404)
 {
@@ -562,7 +562,7 @@ curl -X POST http://localhost:9867/instances/{id}/tabs/open -d 'invalid'
 TAB=$(pinchtab tab open $INST | jq -r .id)
 
 # 2. Do work (navigate, interact, etc.)
-pinchtab tab navigate $TAB https://example.com
+pinchtab tab navigate $TAB https://pinchtab.com
 
 # 3. Get results
 pinchtab tab snapshot $TAB
@@ -675,14 +675,14 @@ Once you have a tab ID, you can perform full browser control operations on it.
 
 **CLI:**
 ```bash
-pinchtab tab navigate <tab-id> https://example.com
-pinchtab tab navigate <tab-id> https://example.com --timeout 30
+pinchtab tab navigate <tab-id> https://pinchtab.com
+pinchtab tab navigate <tab-id> https://pinchtab.com --timeout 30
 ```
 
 **Curl:**
 ```bash
 curl -X POST http://localhost:9867/tabs/tab_abc/navigate \
-  -d '{"url":"https://example.com","timeout":30,"blockImages":true}'
+  -d '{"url":"https://pinchtab.com","timeout":30,"blockImages":true}'
 ```
 
 ### Get Snapshot
@@ -878,7 +878,7 @@ TAB=$(pinchtab tab new $INST | jq -r .id)
 echo "Tab: $TAB"
 
 # Navigate
-pinchtab tab navigate $TAB https://example.com
+pinchtab tab navigate $TAB https://pinchtab.com
 sleep 2
 
 # Get snapshot

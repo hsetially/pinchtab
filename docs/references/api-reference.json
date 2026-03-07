@@ -419,7 +419,7 @@
       "curl": true,
       "tldr": "View actions performed with this profile",
       "curlExample": "curl \"http://localhost:9867/profiles/prof_278be87/logs?limit=50\"",
-      "curlExampleOutput": "[{\"timestamp\":\"2026-03-01T05:12:45Z\",\"action\":\"navigate\",\"url\":\"https://example.com\"},{\"timestamp\":\"2026-03-01T05:12:50Z\",\"action\":\"click\",\"selector\":\"e5\"}]",
+      "curlExampleOutput": "[{\"timestamp\":\"2026-03-01T05:12:45Z\",\"action\":\"navigate\",\"url\":\"https://pinchtab.com\"},{\"timestamp\":\"2026-03-01T05:12:50Z\",\"action\":\"click\",\"selector\":\"e5\"}]",
       "parameters": "id (string, path, required): Profile ID or name; limit (int, query, optional, default: 100)",
       "payload": "N/A (GET request)",
       "defaults": "Returns array of ActionRecord",
@@ -463,10 +463,10 @@
       "tldr": "Navigate tab to URL",
       "cli": true,
       "curl": true,
-      "cliExample": "pinchtab tab navigate <tabId> https://example.com",
-      "curlExample": "curl -X POST http://localhost:9867/tabs/tab_abc/navigate -d '{\"url\":\"https://example.com\",\"timeout\":30}'",
+      "cliExample": "pinchtab tab navigate <tabId> https://pinchtab.com",
+      "curlExample": "curl -X POST http://localhost:9867/tabs/tab_abc/navigate -d '{\"url\":\"https://pinchtab.com\",\"timeout\":30}'",
       "parameters": "url (string, body, required); timeout (int, optional); blockImages (bool, optional); blockAds (bool, optional)",
-      "payload": "{\"url\":\"https://example.com\",\"timeout\":30}",
+      "payload": "{\"url\":\"https://pinchtab.com\",\"timeout\":30}",
       "defaults": "timeout=30s; returns {url, title, status}"
     },
     {
@@ -604,7 +604,7 @@
       "curl": true,
       "curlExample": "curl -X POST http://localhost:9867/tabs/tab_abc/cookies -d '{\"action\":\"set\",\"cookies\":[{\"name\":\"key\",\"value\":\"val\"}]}'",
       "parameters": "action (string, body, required: 'set' or 'delete'); cookies (array, body, required)",
-      "payload": "{\"action\":\"set\",\"cookies\":[{\"name\":\"session\",\"value\":\"abc123\",\"domain\":\".example.com\"}]}",
+      "payload": "{\"action\":\"set\",\"cookies\":[{\"name\":\"session\",\"value\":\"abc123\",\"domain\":\".pinchtab.com\"}]}",
       "defaults": "returns {set: [...], deleted: [...]}"
     },
     {

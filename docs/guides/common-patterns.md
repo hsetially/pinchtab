@@ -49,7 +49,7 @@ sleep 2
 # Optionally navigate to starting URL (via orchestrator proxy)
 curl -s -X POST "http://localhost:9867/instances/$INST/tabs/open" \
   -H "Content-Type: application/json" \
-  -d '{"url":"https://app.example.com"}'
+  -d '{"url":"https://app.pinchtab.com"}'
 
 echo "Navigate the app manually, then run automated tests..."
 sleep 300
@@ -102,11 +102,11 @@ echo "Created 5 parallel test workers"
 
 # Run tests in parallel
 TEST_URLS=(
-  "https://app.example.com/test1"
-  "https://app.example.com/test2"
-  "https://app.example.com/test3"
-  "https://app.example.com/test4"
-  "https://app.example.com/test5"
+  "https://app.pinchtab.com/test1"
+  "https://app.pinchtab.com/test2"
+  "https://app.pinchtab.com/test3"
+  "https://app.pinchtab.com/test4"
+  "https://app.pinchtab.com/test5"
 )
 
 for i in "${!INSTANCES[@]}"; do
@@ -180,14 +180,14 @@ done
 sleep 3
 
 URLS=(
-  "https://example.com/page1"
-  "https://example.com/page2"
-  "https://example.com/page3"
-  "https://example.com/page4"
-  "https://example.com/page5"
-  "https://example.com/page6"
-  "https://example.com/page7"
-  "https://example.com/page8"
+  "https://pinchtab.com/page1"
+  "https://pinchtab.com/page2"
+  "https://pinchtab.com/page3"
+  "https://pinchtab.com/page4"
+  "https://pinchtab.com/page5"
+  "https://pinchtab.com/page6"
+  "https://pinchtab.com/page7"
+  "https://pinchtab.com/page8"
 )
 
 # Distribute evenly via orchestrator proxy
@@ -272,11 +272,11 @@ done
 
 # Work queue (100 URLs)
 QUEUE=(
-  "https://example.com/1"
-  "https://example.com/2"
-  "https://example.com/3"
+  "https://pinchtab.com/1"
+  "https://pinchtab.com/2"
+  "https://pinchtab.com/3"
   # ... up to ...
-  "https://example.com/100"
+  "https://pinchtab.com/100"
 )
 
 # Process queue with max concurrent jobs (use 'wait -n' for job-level control)
@@ -368,19 +368,19 @@ U3=$(curl -s -X POST http://localhost:9867/instances/start \
 # User 1 navigates (via orchestrator proxy)
 curl -s -X POST "http://localhost:9867/instances/$U1/tabs/open" \
   -H "Content-Type: application/json" \
-  -d '{"url":"https://app.example.com/login?user=1"}'
+  -d '{"url":"https://app.pinchtab.com/login?user=1"}'
 
 # User 2 navigates independently
 PORT_U2=$(curl -s http://localhost:9867/instances/$U2 | jq -r '.port')
 curl -s -X POST "http://localhost:$PORT_U2/navigate" \
   -H "Content-Type: application/json" \
-  -d '{"url":"https://app.example.com/login?user=2"}'
+  -d '{"url":"https://app.pinchtab.com/login?user=2"}'
 
 # User 3 navigates independently
 PORT_U3=$(curl -s http://localhost:9867/instances/$U3 | jq -r '.port')
 curl -s -X POST "http://localhost:$PORT_U3/navigate" \
   -H "Content-Type: application/json" \
-  -d '{"url":"https://app.example.com/login?user=3"}'
+  -d '{"url":"https://app.pinchtab.com/login?user=3"}'
 ```
 
 ### Session Persistence
@@ -400,7 +400,7 @@ PORT=$(curl -s http://localhost:9867/instances/$INST | jq -r '.port')
 # Navigate and set up state
 curl -s -X POST "http://localhost:$PORT/navigate" \
   -H "Content-Type: application/json" \
-  -d '{"url":"https://app.example.com"}'
+  -d '{"url":"https://app.pinchtab.com"}'
 
 # User interacts manually...
 sleep 3600  # 1 hour session
@@ -434,7 +434,7 @@ ITEMS=("item1" "item2" "item3" ... "item1000")
 for ITEM in "${ITEMS[@]}"; do
   curl -s -X POST "http://localhost:9868/navigate" \
     -H "Content-Type: application/json" \
-    -d "{\"url\":\"https://api.example.com?item=$ITEM\"}"
+    -d "{\"url\":\"https://api.pinchtab.com?item=$ITEM\"}"
   
   sleep 1  # Rate limiting
 done
@@ -468,7 +468,7 @@ for ITEM in "${ITEMS[@]}"; do
   
   curl -s -X POST "http://localhost:$PORT/navigate" \
     -H "Content-Type: application/json" \
-    -d "{\"url\":\"https://api.example.com?item=$ITEM\"}" &
+    -d "{\"url\":\"https://api.pinchtab.com?item=$ITEM\"}" &
   
   ((ITEM_INDEX++))
 done
@@ -500,7 +500,7 @@ for i in "${!ITEMS[@]}"; do
   # Process item
   if curl -s -X POST "http://localhost:9868/navigate" \
     -H "Content-Type: application/json" \
-    -d "{\"url\":\"https://api.example.com?item=$ITEM\"}" > /dev/null 2>&1; then
+    -d "{\"url\":\"https://api.pinchtab.com?item=$ITEM\"}" > /dev/null 2>&1; then
     RESULTS+=("$ITEM: OK")
   else
     FAILED+=("$ITEM")
@@ -515,7 +515,7 @@ echo "Retrying ${#FAILED[@]} failed items..."
 for ITEM in "${FAILED[@]}"; do
   curl -s -X POST "http://localhost:9868/navigate" \
     -H "Content-Type: application/json" \
-    -d "{\"url\":\"https://api.example.com?item=$ITEM\"}"
+    -d "{\"url\":\"https://api.pinchtab.com?item=$ITEM\"}"
 done
 
 echo "Results: ${#RESULTS[@]} OK, ${#FAILED[@]} failed"
@@ -544,7 +544,7 @@ function safe_navigate() {
     -d "{\"url\":\"$URL\"}"
 }
 
-safe_navigate 9868 "https://example.com" || echo "Navigation failed"
+safe_navigate 9868 "https://pinchtab.com" || echo "Navigation failed"
 ```
 
 ### Timeout Handling

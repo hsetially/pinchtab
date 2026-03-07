@@ -7,15 +7,15 @@ Base URL for all examples: `http://localhost:9867`
 ## Navigate
 
 ```bash
-# CLI: pinchtab nav https://example.com [--new-tab] [--block-images]
+# CLI: pinchtab nav https://pinchtab.com [--new-tab] [--block-images]
 curl -X POST /navigate \
   -H 'Content-Type: application/json' \
-  -d '{"url": "https://example.com"}'
+  -d '{"url": "https://pinchtab.com"}'
 
 # With options: custom timeout, block images, open in new tab
 curl -X POST /navigate \
   -H 'Content-Type: application/json' \
-  -d '{"url": "https://example.com", "timeout": 60, "blockImages": true, "newTab": true}'
+  -d '{"url": "https://pinchtab.com", "timeout": 60, "blockImages": true, "newTab": true}'
 ```
 
 ## Snapshot (accessibility tree)
@@ -87,7 +87,7 @@ curl -X POST /action -H 'Content-Type: application/json' \
 
 # Fill (set value directly, no keystrokes)
 curl -X POST /action -H 'Content-Type: application/json' \
-  -d '{"kind": "fill", "selector": "#email", "text": "user@example.com"}'
+  -d '{"kind": "fill", "selector": "#email", "text": "user@pinchtab.com"}'
 
 # Hover (trigger dropdowns/tooltips)
 curl -X POST /action -H 'Content-Type: application/json' \
@@ -244,7 +244,7 @@ curl /tabs
 
 # Open new tab
 curl -X POST /tab -H 'Content-Type: application/json' \
-  -d '{"action": "new", "url": "https://example.com"}'
+  -d '{"action": "new", "url": "https://pinchtab.com"}'
 
 # Close tab
 curl -X POST /tab -H 'Content-Type: application/json' \
@@ -275,7 +275,7 @@ curl /cookies
 
 # Set cookies
 curl -X POST /cookies -H 'Content-Type: application/json' \
-  -d '{"url":"https://example.com","cookies":[{"name":"session","value":"abc123"}]}'
+  -d '{"url":"https://pinchtab.com","cookies":[{"name":"session","value":"abc123"}]}'
 ```
 
 ## Stealth

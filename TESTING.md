@@ -6,10 +6,11 @@ The `pdev` developer toolkit is the easiest way to run checks and tests:
 
 ```bash
 ./pdev                    # Interactive picker
-./pdev test               # All tests (unit + integration)
+./pdev test               # All tests (unit + integration + system)
 ./pdev test unit          # Unit tests only
 ./pdev test integration   # Integration tests only
-./pdev check              # All checks (format, vet, build, test, lint)
+./pdev test system        # System tests only
+./pdev check              # All checks (format, vet, build, lint)
 ./pdev check go           # Go checks only
 ./pdev check security     # Gosec security scan
 ./pdev hooks              # Install git hooks (pre-commit)
@@ -29,10 +30,24 @@ go test ./...
 Integration tests launch a real pinchtab server with Chrome and run HTTP-level tests against it.
 
 ```bash
-go test -tags integration ./tests/integration/ -v -timeout 5m
+go test -tags integration ./tests/integration/ -v -timeout 10m -skip '^(TestProxy_InstanceIsolation|TestOrchestrator_(HealthCheck|HashBasedIDs|PortAllocation|PortReuse|ListInstances|FirstRequestLazyChrome|AggregateTabsEndpoint|StopNonexistent|InstanceCleanup))$'
 # or
 ./pdev test integration
 ```
+
+These cover the single-instance HTTP-level suite plus the always-run orchestrator/proxy smoke coverage.
+
+## System Tests
+
+System tests are the heavier optional orchestrator/proxy regression suite:
+
+```bash
+go test -tags integration ./tests/integration/ -v -timeout 15m -run '^(TestProxy_InstanceIsolation|TestOrchestrator_(HealthCheck|HashBasedIDs|PortAllocation|PortReuse|ListInstances|FirstRequestLazyChrome|AggregateTabsEndpoint|StopNonexistent|InstanceCleanup))$'
+# or
+./pdev test system
+```
+
+In GitHub Actions, `system` is in a separate manual workflow: [`.github/workflows/system.yml`](/Users/luigi/dev/prj/giago/pt-bosch/.github/workflows/system.yml). You can run it from the Actions tab against a PR branch.
 
 ### Environment Variables
 
@@ -82,7 +97,7 @@ New tests should use `testutil.Client` and `testutil.NewTestServer` (or `StartSe
 package integration
 
 func TestMyFeature(t *testing.T) {
-    navigate(t, "https://example.com")
+    navigate(t, examplePageURL(t))
     
     code, body := client.Get(t, "/snapshot")
     if code != 200 {

@@ -52,18 +52,18 @@ def test_navigate_requires_url(base_url, token):
 def test_navigate_success(base_url, token):
     with patch("cli._api_request") as m:
         m.return_value = {}
-        result = cli.cmd_navigate({"url": "https://example.com"}, base_url, token)
+        result = cli.cmd_navigate({"url": "https://pinchtab.com"}, base_url, token)
     assert result["status"] == "success"
     m.assert_called_once()
     body = m.call_args[1]["body"]
-    assert body["url"] == "https://example.com"
+    assert body["url"] == "https://pinchtab.com"
 
 
 def test_navigate_with_options(base_url, token):
     with patch("cli._api_request") as m:
         m.return_value = {}
         cli.cmd_navigate({
-            "url": "https://example.com",
+            "url": "https://pinchtab.com",
             "block-images": True,
             "new-tab": True,
             "timeout": 60,
