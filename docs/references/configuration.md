@@ -1,341 +1,299 @@
 # Configuration
 
-Complete reference for all PinchTab environment variables and configuration options.
+Complete reference for PinchTab configuration. Supports environment variables, config files (JSON), and CLI commands.
+
+PinchTab has two instance ownership models:
+- `launch`: PinchTab starts and manages Chrome
+- `attach`: PinchTab connects to an externally managed Chrome instance
+
+The config file defines defaults and policy for those models. It does not define a global instance-specific CDP target.
+
+## Configuration Priority
+
+Values are loaded in this order (highest priority first):
+
+1. **Environment variables**
+2. **Config file** — `~/.config/pinchtab/config.json` (or `~/.pinchtab/config.json` legacy)
+3. **Built-in defaults**
+
+Only a small operational env surface remains:
+- `PINCHTAB_CONFIG`
+- `PINCHTAB_BIND`
+- `PINCHTAB_PORT`
+- `PINCHTAB_TOKEN`
+- `CHROME_BIN`
+
+Everything else should be configured in `config.json`.
+
+## Config File
+
+### Location
+
+Default location varies by OS:
+- **macOS:** `~/Library/Application Support/pinchtab/config.json`
+- **Linux:** `~/.config/pinchtab/config.json` (or `$XDG_CONFIG_HOME/pinchtab/config.json`)
+- **Windows:** `%APPDATA%\pinchtab\config.json`
+
+For backward compatibility, `~/.pinchtab/config.json` is used if it exists and the new location doesn't.
+
+Override with `PINCHTAB_CONFIG=/path/to/config.json`.
+
+### Format
+
+```json
+{
+  "server": {
+    "port": "9867",
+    "bind": "127.0.0.1",
+    "token": "your-secret-token",
+    "stateDir": "/path/to/state"
+  },
+  "browser": {
+    "version": "144.0.7559.133",
+    "binary": "/path/to/chrome",
+    "extraFlags": "",
+    "extensionPaths": []
+  },
+  "instanceDefaults": {
+    "mode": "headless",
+    "maxTabs": 20,
+    "stealthLevel": "light",
+    "tabEvictionPolicy": "reject",
+    "blockAds": false,
+    "blockImages": false,
+    "blockMedia": false,
+    "noRestore": false,
+    "noAnimations": false
+  },
+  "security": {
+    "allowEvaluate": false,
+    "allowMacro": false,
+    "allowScreencast": false,
+    "allowDownload": false,
+    "allowUpload": false
+  },
+  "profiles": {
+    "baseDir": "/path/to/profiles",
+    "defaultProfile": "default"
+  },
+  "multiInstance": {
+    "strategy": "simple",
+    "allocationPolicy": "fcfs",
+    "instancePortStart": 9868,
+    "instancePortEnd": 9968
+  },
+  "attach": {
+    "enabled": false,
+    "allowHosts": ["127.0.0.1", "localhost", "::1"],
+    "allowSchemes": ["ws", "wss"]
+  },
+  "timeouts": {
+    "actionSec": 30,
+    "navigateSec": 60,
+    "shutdownSec": 10,
+    "waitNavMs": 1000
+  }
+}
+```
+
+### Section Semantics
+
+- `server`: PinchTab HTTP server settings.
+- `browser`: Chrome executable/runtime wiring used when PinchTab launches Chrome.
+- `instanceDefaults`: Default launch-time behavior for managed instances.
+- `security`: Feature gates for sensitive endpoints.
+- `profiles`: Shared profile storage model for both single-instance and multi-instance flows.
+- `multiInstance`: Orchestration strategy and instance port allocation.
+- `attach`: Policy for whether attach is allowed and which remote CDP targets are acceptable.
+- `timeouts`: PinchTab runtime timeouts.
+
+### Legacy Flat Format
+
+Older flat format is still supported for backward compatibility:
+
+```json
+{
+  "port": "9867",
+  "headless": true,
+  "maxTabs": 20,
+  "allowEvaluate": false,
+  "timeoutSec": 30,
+  "navigateSec": 60
+}
+```
+
+Run `pinchtab config init` to generate a new config with the nested format.
 
 ## Environment Variables
 
-### Port & Network
+Environment variables always take precedence over config file values.
+
+### Operational Env Vars
 
 | Variable | Default | Description |
-|---|---|---|
-| `BRIDGE_PORT` | `9867` | HTTP server port |
-| `BRIDGE_BIND` | `127.0.0.1` | Bind address (127.0.0.1 = localhost only, 0.0.0.0 = all interfaces) |
+|----------|---------|-------------|
+| `PINCHTAB_PORT` | `9867` | HTTP server port |
+| `PINCHTAB_BIND` | `127.0.0.1` | Bind address |
+| `PINCHTAB_TOKEN` | (none) | API authentication token |
+| `PINCHTAB_CONFIG` | (OS config dir)/config.json | Config file path |
+| `CHROME_BIN` | (auto) | Chrome binary path |
 
-### Browser & Chrome
+All behavior settings such as display mode, feature gates, profile defaults, attach policy, timeouts, and multi-instance strategy live in `config.json`.
 
-| Variable | Default | Description |
-|---|---|---|
-| `CHROME_BINARY` | Auto-detect | Path to Chrome/Chromium binary |
-| `BRIDGE_HEADLESS` | `true` | Run Chrome headless (no visible window) |
-| `BRIDGE_PROFILE` | Default profile | Chrome profile name (stored in `~/.pinchtab/profiles/{name}`) |
+## CLI Commands
 
-### Stealth & Detection
+### `pinchtab config init`
 
-| Variable | Default | Description |
-|---|---|---|
-| `BRIDGE_STEALTH` | `light` | Stealth level: `light`, `medium`, `full` (higher = more bot detection bypass, slower) |
+Create a default config file:
 
-### Content Filtering
+```bash
+pinchtab config init
+```
 
-| Variable | Default | Description |
-|---|---|---|
-| `BRIDGE_BLOCK_ADS` | `false` | Block ad domains (speeds up loading) |
-| `BRIDGE_BLOCK_IMAGES` | `false` | Block image loading |
-| `BRIDGE_BLOCK_MEDIA` | `false` | Block video/audio resources |
+### `pinchtab config show`
 
-### Security & Authentication
+Show current effective configuration:
 
-| Variable | Default | Description |
-|---|---|---|
-| `PINCHTAB_TOKEN` | Disabled | API authentication token (if set, all requests must include `Authorization: Bearer {token}`) |
-| `PINCHTAB_ALLOW_EVALUATE` | `false` | Enable `POST /evaluate` and `POST /tabs/{id}/evaluate` endpoints (disabled by default) |
+```bash
+pinchtab config show
+```
 
-### Debugging & Logging
+### `pinchtab config path`
 
-| Variable | Default | Description |
-|---|---|---|
-| `BRIDGE_DEBUG` | `false` | Enable debug logging (verbose output) |
-| `BRIDGE_LOG_LEVEL` | `info` | Log level: `debug`, `info`, `warn`, `error` |
+Show config file path:
 
-### Dashboard
+```bash
+pinchtab config path
+```
 
-| Variable | Default | Description |
-|---|---|---|
-| `BRIDGE_DASHBOARD_PORT` | Same as `BRIDGE_PORT` | Dashboard HTTP port (usually same as API server) |
-| `BRIDGE_NO_DASHBOARD` | `false` | Disable dashboard (API-only mode) |
+### `pinchtab config validate`
 
----
+Validate config file:
 
-## Usage Examples
+```bash
+pinchtab config validate
+```
+
+Checks for:
+- Valid port numbers (1-65535)
+- Valid enum values (strategy, stealthLevel, tabEvictionPolicy, etc.)
+- Valid attach schemes (`ws`, `wss`)
+- Valid timeout values (non-negative)
+- Valid instance port range (`start <= end`)
+
+## Examples
 
 ### Basic Setup
 
 ```bash
-# Default (headless, localhost:9867)
-./pinchtab
-```
-
-### Custom Port
-
-```bash
-BRIDGE_PORT=9868 ./pinchtab
-```
-
-### Network Access (External)
-
-```bash
-# Allow connections from other machines
-BRIDGE_BIND=0.0.0.0 BRIDGE_PORT=9867 ./pinchtab
-```
-
-**⚠️ Security Warning:** Only use `0.0.0.0` on trusted networks. Consider using `PINCHTAB_TOKEN` for authentication.
-
-### Headed Mode with Profile
-
-```bash
-BRIDGE_HEADLESS=false BRIDGE_PROFILE=work ./pinchtab
-```
-
-Opens visible Chrome window with "work" profile.
-
-### Stealth Mode (Bypass Bot Detection)
-
-```bash
-BRIDGE_STEALTH=full ./pinchtab
-```
-
-Options:
-- `light` — Basic patches (default, minimal overhead)
-- `medium` — More aggressive patches (some overhead)
-- `full` — Maximum stealth (significant overhead, slowest)
-
-### Ad Blocking
-
-```bash
-BRIDGE_BLOCK_ADS=true ./pinchtab
-```
-
-Speeds up page loading by blocking ad domains.
-
-### API Authentication
-
-```bash
-PINCHTAB_TOKEN=my-secret-token ./pinchtab
-```
-
-Then all API requests must include:
-```bash
-curl -H "Authorization: Bearer my-secret-token" http://localhost:9867/health
-```
-
-### Enable JavaScript Evaluate Endpoint (Opt-in)
-
-```bash
-PINCHTAB_TOKEN=my-secret-token \
-PINCHTAB_ALLOW_EVALUATE=true \
 pinchtab
 ```
 
-By default, evaluate endpoints are not registered.
+Runs on `localhost:9867`, headless, no authentication.
 
-### Multiple Settings
-
-```bash
-BRIDGE_PORT=9868 \
-BRIDGE_HEADLESS=false \
-BRIDGE_STEALTH=full \
-BRIDGE_BLOCK_ADS=true \
-BRIDGE_PROFILE=dev \
-PINCHTAB_TOKEN=secret \
-./pinchtab
-```
-
-### Debug Mode
+### With Authentication
 
 ```bash
-BRIDGE_DEBUG=true BRIDGE_LOG_LEVEL=debug ./pinchtab
+PINCHTAB_TOKEN=my-secret-token pinchtab
 ```
 
-Produces verbose logs for troubleshooting.
+Or in config file:
 
----
-
-## Configuration Priority
-
-If multiple sources set the same value:
-
-1. **Command-line flags** (highest priority)
-2. **Environment variables**
-3. **Config file** (if supported)
-4. **Built-in defaults** (lowest priority)
-
-Example:
-```bash
-# BRIDGE_PORT=9868 from env, but --port flag overrides it
-./pinchtab --port 9870  # Uses 9870
+```json
+{
+  "server": {
+    "token": "my-secret-token"
+  }
+}
 ```
 
----
-
-## Chrome Profile Directory Structure
-
-Profiles are stored in `~/.pinchtab/profiles/{id}/`:
-
-```text
-~/.pinchtab/profiles/
-├── prof_9f86d081/
-│   ├── Default/
-│   │   ├── Preferences
-│   │   ├── Cookies
-│   │   ├── History
-│   │   └── ... (other Chrome data)
-│   └── ...
-├── prof_dc34vewr/
-│   ├── Default/
-│   │   └── ... (Chrome data)
-│   └── ...
-└── prof_34ff6ks9/
-    └── ... (default profile)
-```
-
-Each profile maintains its own:
-- Cookies and session data
-- Browsing history
-- Saved passwords
-- Local storage
-- Cache
-
----
-
-## Performance Tuning
-
-### For Speed (Reduce Overhead)
+### Network Accessible
 
 ```bash
-# Minimal stealth, block ads
-BRIDGE_STEALTH=light \
-BRIDGE_BLOCK_ADS=true \
-./pinchtab
+PINCHTAB_BIND=0.0.0.0 PINCHTAB_TOKEN=secret pinchtab
 ```
 
-### For Security (Detect Bypass)
+Always use a token when binding to `0.0.0.0`.
+
+### Headed Mode for Debugging
+
+```json
+{
+  "instanceDefaults": {
+    "mode": "headed"
+  }
+}
+```
+
+### Attach Policy
+
+Enable attach mode only if you want PinchTab to accept attach requests to externally managed Chrome instances.
+
+```json
+{
+  "attach": {
+    "enabled": true,
+    "allowHosts": ["127.0.0.1", "localhost", "chrome.internal"],
+    "allowSchemes": ["ws", "wss"]
+  }
+}
+```
+
+This is policy only. The actual `cdpUrl` belongs to the attach request, not global config.
+
+### Custom Ports
 
 ```bash
-# Maximum stealth
-BRIDGE_STEALTH=full ./pinchtab
+PINCHTAB_PORT=8080 pinchtab dashboard
 ```
 
-Note: Maximum stealth increases latency by 2-3x.
+Or in config file:
 
-### For Bandwidth (Block Resources)
-
-```bash
-# Block ads, images, and media
-BRIDGE_BLOCK_ADS=true \
-BRIDGE_BLOCK_IMAGES=true \
-BRIDGE_BLOCK_MEDIA=true \
-./pinchtab
+```json
+{
+  "server": {
+    "port": "8080"
+  },
+  "multiInstance": {
+    "instancePortStart": 8100,
+    "instancePortEnd": 8200
+  }
+}
 ```
 
----
+### Tab Eviction Policy
 
-## Network Configuration
+When max tabs is reached:
+- `reject` — return error
+- `close_oldest` — close oldest tab by creation time
+- `close_lru` — close least recently used tab
 
-### Localhost Only (Default - Secure)
-
-```bash
-BRIDGE_BIND=127.0.0.1 ./pinchtab
+```json
+{
+  "instanceDefaults": {
+    "maxTabs": 10,
+    "tabEvictionPolicy": "close_lru"
+  }
+}
 ```
 
-Only accessible from the same machine.
+## Validation
 
-### All Interfaces (Network Accessible)
+All enum fields are validated on load:
 
-```bash
-BRIDGE_BIND=0.0.0.0 ./pinchtab
-```
+| Field | Valid Values |
+|-------|--------------|
+| `instanceDefaults.mode` | `headless`, `headed` |
+| `instanceDefaults.stealthLevel` | `light`, `medium`, `full` |
+| `instanceDefaults.tabEvictionPolicy` | `reject`, `close_oldest`, `close_lru` |
+| `multiInstance.strategy` | `simple`, `explicit`, `simple-autorestart` |
+| `multiInstance.allocationPolicy` | `fcfs`, `round_robin`, `random` |
+| `attach.allowSchemes` | `ws`, `wss` |
 
-Accessible from any machine on the network. **Requires authentication:**
-
-```bash
-BRIDGE_BIND=0.0.0.0 PINCHTAB_TOKEN=secret ./pinchtab
-```
-
-### Specific Interface
-
-```bash
-BRIDGE_BIND=192.168.1.100 ./pinchtab
-```
-
-Only accessible from that IP address.
-
----
-
-## Troubleshooting
-
-### Port Already in Use
-
-```bash
-# Find what's using the port
-lsof -i :9867
-
-# Use different port
-BRIDGE_PORT=9868 ./pinchtab
-```
-
-### Chrome Not Found
-
-```bash
-# Specify custom binary path
-CHROME_BINARY=/usr/bin/google-chrome ./pinchtab
-```
-
-### High Latency with Stealth Mode
-
-```bash
-# Reduce stealth level
-BRIDGE_STEALTH=light ./pinchtab
-```
-
-Maximum stealth (`full`) adds significant overhead.
-
-### Authentication Errors
-
-```bash
-# Check token format
-PINCHTAB_TOKEN=my-token ./pinchtab
-
-# Request must include the token
-curl -H "Authorization: Bearer my-token" http://localhost:9867/health
-```
-
----
-
-## Security Best Practices
-
-1. **Use `PINCHTAB_TOKEN` when exposing to network:**
-   ```bash
-   BRIDGE_BIND=0.0.0.0 PINCHTAB_TOKEN=$(openssl rand -hex 32) ./pinchtab
-   ```
-
-2. **Use localhost by default:**
-   ```bash
-   # Good: only accessible locally
-   BRIDGE_BIND=127.0.0.1 ./pinchtab
-   ```
-
-3. **Use SSH tunneling for remote access:**
-   ```bash
-   # Remote: start without binding to all interfaces
-   ssh user@remote "BRIDGE_BIND=127.0.0.1 pinchtab"
-
-   # Local: tunnel through SSH
-   ssh -L 9867:127.0.0.1:9867 user@remote
-
-   # Then use locally
-   curl http://localhost:9867/health
-   ```
-
-4. **Use firewall rules if exposing to network:**
-   ```bash
-   # Only allow from specific IPs
-   ufw allow from 192.168.1.0/24 to any port 9867
-   ```
-
----
+Run `pinchtab config validate` to check your config file.
 
 ## Related Documentation
 
-- [API Reference](endpoints.md) — HTTP endpoints
-- [Getting Started](../get-started.md) — Quick setup
-- [Core Concepts](../core-concepts.md) — Instances, profiles, tabs
+- [API Reference](endpoints.md)
+- [CLI Reference](cli-quick-reference.md)
+- [Instance API](instance-api.md)

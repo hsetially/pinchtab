@@ -8,11 +8,11 @@ Development and CI scripts for PinchTab.
 
 | Script | Purpose |
 |--------|---------|
-| `check.sh` | Go pre-push checks (format, vet, build, test, lint) |
-| `check-dashboard.sh` | Dashboard checks (typecheck, eslint, prettier, vitest) |
+| `check.sh` | Go checks (format, vet, build, lint) |
+| `check-dashboard.sh` | Dashboard checks (typecheck, eslint, prettier) |
 | `check-gosec.sh` | Security scan with gosec (reproduces CI security job) |
 | `check-docs-json.sh` | Validate `docs/index.json` structure |
-| `test.sh` | Go test runner with progress (unit, integration, or all) |
+| `test.sh` | Go test runner with progress (unit, integration, system, or all) |
 | `pre-commit` | Git pre-commit hook (format + lint) |
 
 ## Build & Run

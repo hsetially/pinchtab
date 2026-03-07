@@ -54,7 +54,7 @@ func TestHandleHealth_BridgeListTargetsError(t *testing.T) {
 
 	h := &Handlers{
 		Bridge: mockBridge,
-		Config: &config.RuntimeConfig{CdpURL: "ws://localhost:9222"},
+		Config: &config.RuntimeConfig{},
 	}
 
 	req := httptest.NewRequest("GET", "/health", nil)
@@ -85,13 +85,13 @@ func TestHandleHealth_Success(t *testing.T) {
 	// Create a mock bridge that returns targets
 	mockBridge := &MockBridge{
 		targets: []*target.Info{
-			{TargetID: "target1", URL: "https://example.com", Title: "Example"},
+			{TargetID: "target1", URL: "https://pinchtab.com", Title: "Example"},
 		},
 	}
 
 	h := &Handlers{
 		Bridge: mockBridge,
-		Config: &config.RuntimeConfig{CdpURL: "ws://localhost:9222"},
+		Config: &config.RuntimeConfig{},
 	}
 
 	req := httptest.NewRequest("GET", "/health", nil)
@@ -138,7 +138,7 @@ func TestHandleTabs_NilBridge(t *testing.T) {
 func TestHandleTabs_Success(t *testing.T) {
 	mockBridge := &MockBridge{
 		targets: []*target.Info{
-			{TargetID: "tab1", URL: "https://example.com", Title: "Example", Type: "page"},
+			{TargetID: "tab1", URL: "https://pinchtab.com", Title: "Example", Type: "page"},
 			{TargetID: "tab2", URL: "https://google.com", Title: "Google", Type: "page"},
 		},
 	}
@@ -220,7 +220,7 @@ func TestHandleHealth_EnsureChromeFailure(t *testing.T) {
 func TestHandleHealth_EnsureChromeSuccess(t *testing.T) {
 	mockBridge := &MockBridge{
 		targets: []*target.Info{
-			{TargetID: "target1", URL: "https://example.com", Title: "Example"},
+			{TargetID: "target1", URL: "https://pinchtab.com", Title: "Example"},
 		},
 		ensureChromeCalled: false,
 		ensureChromeErr:    "", // No error
@@ -228,7 +228,7 @@ func TestHandleHealth_EnsureChromeSuccess(t *testing.T) {
 
 	h := &Handlers{
 		Bridge: mockBridge,
-		Config: &config.RuntimeConfig{CdpURL: "ws://localhost:9222"},
+		Config: &config.RuntimeConfig{},
 	}
 
 	req := httptest.NewRequest("GET", "/health", nil)

@@ -80,7 +80,7 @@ sleep 2
 ```bash
 TAB=$(curl -s -X POST http://localhost:9867/instances/inst_abc123/tabs/open \
   -H "Content-Type: application/json" \
-  -d '{"url":"https://example.com"}' | jq -r '.id')
+  -d '{"url":"https://pinchtab.com"}' | jq -r '.id')
 
 echo "Tab created: $TAB"
 ```
@@ -90,7 +90,7 @@ echo "Tab created: $TAB"
 {
   "id": "tab_def456",
   "title": "Example Domain",
-  "url": "https://example.com/"
+  "url": "https://pinchtab.com/"
 }
 ```
 
@@ -110,7 +110,7 @@ curl "http://localhost:9867/tabs/$TAB/text"
 **Complete script:**
 ```bash
 #!/bin/bash
-URL="https://example.com"
+URL="https://pinchtab.com"
 
 # Step 1: Create instance
 INST=$(curl -s -X POST http://localhost:9867/instances/launch \
@@ -156,7 +156,7 @@ sleep 2
 
 TAB=$(curl -s -X POST http://localhost:9867/instances/$INST/tabs/open \
   -H "Content-Type: application/json" \
-  -d '{"url":"https://example.com/interactive"}' | jq -r '.id')
+  -d '{"url":"https://pinchtab.com/interactive"}' | jq -r '.id')
 
 echo "Instance: $INST, Tab: $TAB"
 ```
@@ -204,7 +204,7 @@ curl "http://localhost:9867/tabs/$TAB/snapshot" | jq '.nodes'
 **Complete script:**
 ```bash
 #!/bin/bash
-URL="https://example.com/interactive"
+URL="https://pinchtab.com/interactive"
 
 # Step 1: Create instance
 INST=$(curl -s -X POST http://localhost:9867/instances/launch \
@@ -260,7 +260,7 @@ sleep 2
 
 TAB=$(curl -s -X POST http://localhost:9867/instances/$INST/tabs/open \
   -H "Content-Type: application/json" \
-  -d '{"url":"https://example.com/login"}' | jq -r '.id')
+  -d '{"url":"https://pinchtab.com/login"}' | jq -r '.id')
 
 echo "Instance: $INST, Tab: $TAB"
 ```
@@ -293,7 +293,7 @@ curl -s "http://localhost:9867/tabs/$TAB/snapshot" | jq '.nodes[] | select(.role
 ```bash
 curl -X POST http://localhost:9867/tabs/$TAB/action \
   -H "Content-Type: application/json" \
-  -d '{"action":"fill","ref":"e3","text":"user@example.com"}'
+  -d '{"action":"fill","ref":"e3","text":"user@pinchtab.com"}'
 ```
 
 **Step 4: Fill password field**
@@ -330,7 +330,7 @@ echo "Instance: $INST"
 sleep 2
 TAB=$(curl -s -X POST http://localhost:9867/instances/$INST/tabs/open \
   -H "Content-Type: application/json" \
-  -d '{"url":"https://example.com/login"}' | jq -r '.id')
+  -d '{"url":"https://pinchtab.com/login"}' | jq -r '.id')
 
 echo "Tab: $TAB"
 
@@ -342,7 +342,7 @@ curl -s "http://localhost:9867/tabs/$TAB/snapshot" | \
 # Step 4: Fill email
 curl -s -X POST http://localhost:9867/tabs/$TAB/action \
   -H "Content-Type: application/json" \
-  -d '{"action":"fill","ref":"e3","text":"user@example.com"}'
+  -d '{"action":"fill","ref":"e3","text":"user@pinchtab.com"}'
 
 # Step 5: Fill password
 curl -s -X POST http://localhost:9867/tabs/$TAB/action \
@@ -511,7 +511,7 @@ sleep 2
 
 TAB=$(curl -s -X POST http://localhost:9867/instances/$INST/tabs/open \
   -H "Content-Type: application/json" \
-  -d '{"url":"https://example.com/report"}' | jq -r '.id')
+  -d '{"url":"https://pinchtab.com/report"}' | jq -r '.id')
 
 echo "Instance: $INST, Tab: $TAB"
 ```
@@ -540,7 +540,7 @@ sleep 2
 echo "Navigating to report page..."
 TAB=$(curl -s -X POST http://localhost:9867/instances/$INST/tabs/open \
   -H "Content-Type: application/json" \
-  -d '{"url":"https://example.com/report"}' | jq -r '.id')
+  -d '{"url":"https://pinchtab.com/report"}' | jq -r '.id')
 
 echo "Tab: $TAB"
 
@@ -587,7 +587,7 @@ INST=$(curl -s -X POST http://localhost:9867/instances/launch \
   -d '{"mode":"headless"}' | jq -r '.id')
 
 curl -X POST http://localhost:9867/instances/$INST/tabs/open \
-  -d '{"url":"https://example.com"}'  # Likely timeout or error
+  -d '{"url":"https://pinchtab.com"}'  # Likely timeout or error
 
 # CORRECT - wait for Chrome
 sleep 2

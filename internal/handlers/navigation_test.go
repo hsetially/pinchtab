@@ -20,7 +20,7 @@ func TestHandleNavigate_InvalidJSON(t *testing.T) {
 
 func TestHandleTabNavigate_MissingTabID(t *testing.T) {
 	h := New(&mockBridge{}, &config.RuntimeConfig{}, nil, nil, nil)
-	req := httptest.NewRequest("POST", "/tabs//navigate", bytes.NewReader([]byte(`{"url":"https://example.com"}`)))
+	req := httptest.NewRequest("POST", "/tabs//navigate", bytes.NewReader([]byte(`{"url":"https://pinchtab.com"}`)))
 	w := httptest.NewRecorder()
 	h.HandleTabNavigate(w, req)
 	if w.Code != 400 {
@@ -30,7 +30,7 @@ func TestHandleTabNavigate_MissingTabID(t *testing.T) {
 
 func TestHandleTabNavigate_TabIDMismatch(t *testing.T) {
 	h := New(&mockBridge{}, &config.RuntimeConfig{}, nil, nil, nil)
-	req := httptest.NewRequest("POST", "/tabs/tab_abc/navigate", bytes.NewReader([]byte(`{"tabId":"tab_other","url":"https://example.com"}`)))
+	req := httptest.NewRequest("POST", "/tabs/tab_abc/navigate", bytes.NewReader([]byte(`{"tabId":"tab_other","url":"https://pinchtab.com"}`)))
 	req.SetPathValue("id", "tab_abc")
 	w := httptest.NewRecorder()
 	h.HandleTabNavigate(w, req)

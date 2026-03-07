@@ -77,7 +77,7 @@ After calling `/snapshot`, you get the page's accessibility tree as JSON—flat 
 }
 ```
 
-Then you act on refs: `click e0`, `type e1 "user@example.com"`, `press e2 Enter`.
+Then you act on refs: `click e0`, `type e1 "user@pinchtab.com"`, `press e2 Enter`.
 
 ## Core Workflow
 
@@ -93,7 +93,7 @@ Refs (e.g. `e0`, `e5`, `e12`) are cached per tab after each snapshot — no need
 ### Quick examples
 
 ```bash
-pinchtab nav https://example.com
+pinchtab nav https://pinchtab.com
 pinchtab snap -i -c                    # interactive + compact
 pinchtab click e5
 pinchtab type e12 hello world
@@ -134,7 +134,7 @@ For the full HTTP API (curl examples, download, upload, cookies, stealth, batch 
 ```bash
 curl -X POST http://localhost:9867/navigate \
   -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com"}' && \
+  -d '{"url": "https://pinchtab.com"}' && \
 sleep 3 && \
 curl http://localhost:9867/snapshot | jq '.nodes[] | select(.name | length > 15) | .name'
 ```

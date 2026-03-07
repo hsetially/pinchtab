@@ -32,7 +32,6 @@ USER.md
 BOOTSTRAP.md
 TOOLS.md
 MEMORY.md
-.openclaw/
 AGENTS.md
 *.test
 memory/
@@ -42,3 +41,5 @@ pinchtab-small
 MY_PROJECT_NOTES.md
 debug.log
 pinchtab.exe
+
+.gocache

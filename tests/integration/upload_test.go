@@ -3,31 +3,41 @@
 package integration
 
 import (
+	"encoding/base64"
 	"encoding/json"
-	"fmt"
+	"os"
 	"path/filepath"
 	"testing"
 )
 
+func uploadFixtureFile(t *testing.T) string {
+	t.Helper()
+	return filepath.Join(findRepoRoot(), "tests/assets/test-upload.png")
+}
+
+func uploadFixtureBase64(t *testing.T) string {
+	t.Helper()
+	data, err := os.ReadFile(uploadFixtureFile(t))
+	if err != nil {
+		t.Fatalf("read upload fixture: %v", err)
+	}
+	return base64.StdEncoding.EncodeToString(data)
+}
+
 // UP1: Single file upload with explicit selector
 func TestUpload_SingleFile(t *testing.T) {
-	repoRoot := findRepoRoot()
-	testHtmlPath := filepath.Join(repoRoot, "tests/assets/upload-test.html")
-	testFileURL := fmt.Sprintf("file://%s", testHtmlPath)
-
-	navCode, _ := httpPost(t, "/navigate", map[string]string{"url": testFileURL})
+	navCode, _ := httpPost(t, "/navigate", map[string]string{"url": uploadPageURL(t)})
 	if navCode != 200 {
-		t.Skipf("navigation to file:// URL not supported (code %d), skipping upload test", navCode)
+		t.Fatalf("navigation to upload fixture failed with %d", navCode)
 	}
 
-	testFilePath := filepath.Join(repoRoot, "tests/assets/test-upload.png")
 	code, body := httpPost(t, "/upload", map[string]any{
 		"selector": "#single",
-		"paths":    []string{testFilePath},
+		"files":    []string{uploadFixtureBase64(t)},
 	})
 
 	if code != 200 {
-		t.Skipf("upload returned %d (file:// URLs have limitations in headless Chrome)", code)
+		t.Fatalf("upload returned %d: %s", code, body)
 	}
 
 	var resp map[string]any
@@ -48,23 +58,19 @@ func TestUpload_SingleFile(t *testing.T) {
 
 // UP4: Multiple files upload with explicit selector
 func TestUpload_MultipleFiles(t *testing.T) {
-	repoRoot := findRepoRoot()
-	testHtmlPath := filepath.Join(repoRoot, "tests/assets/upload-test.html")
-	testFileURL := fmt.Sprintf("file://%s", testHtmlPath)
-
-	navCode, _ := httpPost(t, "/navigate", map[string]string{"url": testFileURL})
+	navCode, _ := httpPost(t, "/navigate", map[string]string{"url": uploadPageURL(t)})
 	if navCode != 200 {
-		t.Skipf("navigation to file:// URL not supported (code %d), skipping upload test", navCode)
+		t.Fatalf("navigation to upload fixture failed with %d", navCode)
 	}
 
-	testFilePath := filepath.Join(repoRoot, "tests/assets/test-upload.png")
+	fileData := uploadFixtureBase64(t)
 	code, body := httpPost(t, "/upload", map[string]any{
 		"selector": "#multi",
-		"paths":    []string{testFilePath, testFilePath},
+		"files":    []string{fileData, fileData},
 	})
 
 	if code != 200 {
-		t.Skipf("upload returned %d (file:// URLs have limitations in headless Chrome)", code)
+		t.Fatalf("upload returned %d: %s", code, body)
 	}
 
 	var resp map[string]any
@@ -80,34 +86,27 @@ func TestUpload_MultipleFiles(t *testing.T) {
 
 // UP6: Default selector (uses default input[type=file])
 func TestUpload_DefaultSelector(t *testing.T) {
-	repoRoot := findRepoRoot()
-	testHtmlPath := filepath.Join(repoRoot, "tests/assets/upload-test.html")
-	testFileURL := fmt.Sprintf("file://%s", testHtmlPath)
-
-	navCode, _ := httpPost(t, "/navigate", map[string]string{"url": testFileURL})
+	navCode, _ := httpPost(t, "/navigate", map[string]string{"url": uploadPageURL(t)})
 	if navCode != 200 {
-		t.Skipf("navigation to file:// URL not supported (code %d), skipping upload test", navCode)
+		t.Fatalf("navigation to upload fixture failed with %d", navCode)
 	}
 
-	testFilePath := filepath.Join(repoRoot, "tests/assets/test-upload.png")
-	code, _ := httpPost(t, "/upload", map[string]any{
-		"paths": []string{testFilePath},
+	code, body := httpPost(t, "/upload", map[string]any{
+		"files": []string{uploadFixtureBase64(t)},
 	})
 
 	if code != 200 {
-		t.Skipf("upload with default selector returned %d", code)
+		t.Fatalf("upload with default selector returned %d: %s", code, body)
 	}
 }
 
 // UP7: Invalid selector should error
 func TestUpload_InvalidSelector(t *testing.T) {
 	repoRoot := findRepoRoot()
-	testHtmlPath := filepath.Join(repoRoot, "tests/assets/upload-test.html")
-	testFileURL := fmt.Sprintf("file://%s", testHtmlPath)
 
-	navCode, _ := httpPost(t, "/navigate", map[string]string{"url": testFileURL})
+	navCode, _ := httpPost(t, "/navigate", map[string]string{"url": uploadPageURL(t)})
 	if navCode != 200 {
-		t.Skipf("navigation to file:// URL not supported, skipping upload test")
+		t.Fatalf("navigation to upload fixture failed with %d", navCode)
 	}
 
 	testFilePath := filepath.Join(repoRoot, "tests/assets/test-upload.png")

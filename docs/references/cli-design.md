@@ -49,12 +49,12 @@ pinchtab [--instance <id>] <action> [args] [flags]
 **Examples:**
 ```bash
 # Default instance (auto-detected from PINCHTAB_INSTANCE env or from running instance)
-pinchtab nav https://example.com
+pinchtab nav https://pinchtab.com
 pinchtab snap -i -c
 pinchtab click e5
 
 # Explicit instance
-pinchtab --instance inst_abc123 nav https://example.com
+pinchtab --instance inst_abc123 nav https://pinchtab.com
 pinchtab --instance inst_abc123 snap
 ```
 
@@ -75,11 +75,11 @@ pinchtab --instance <id> tab <tabId> <action>     Operate on specific tab
 pinchtab --instance inst_abc123 tabs              # GET /instances/<id>/tabs
 
 # Create tab
-pinchtab --instance inst_abc123 tab create https://example.com
+pinchtab --instance inst_abc123 tab create https://pinchtab.com
                                                    # POST /instances/<id>/tabs/open {url}
 
 # Navigate tab
-pinchtab --instance inst_abc123 tab <tabId> navigate https://example.com
+pinchtab --instance inst_abc123 tab <tabId> navigate https://pinchtab.com
                                                    # POST /tabs/<tabId>/navigate {url}
 
 # Close tab
@@ -95,14 +95,14 @@ pinchtab --instance inst_abc123 tab <tabId> lock --owner agent1 --ttl 60
 
 #### Option A: Flags (simple cases)
 ```bash
-pinchtab --instance <id> navigate https://example.com --block-images --block-ads --timeout 30
+pinchtab --instance <id> navigate https://pinchtab.com --block-images --block-ads --timeout 30
 ```
 
 Maps to:
 ```json
 POST /tabs/<tabId>/navigate
 {
-  "url": "https://example.com",
+  "url": "https://pinchtab.com",
   "blockImages": true,
   "blockAds": true,
   "timeout": 30
@@ -156,30 +156,30 @@ EOF
 | `/instances/launch` | POST | `pinchtab instance launch --mode headed --port 9869` |
 | `/instances/{id}/logs` | GET | `pinchtab instance <id> logs` |
 | `/instances/{id}/stop` | POST | `pinchtab instance <id> stop` |
-| `/instances/{id}/tabs/open` | POST | `pinchtab --instance <id> tab create https://example.com` |
+| `/instances/{id}/tabs/open` | POST | `pinchtab --instance <id> tab create https://pinchtab.com` |
 | `/instances/{id}/tabs` | GET | `pinchtab --instance <id> tabs` |
 
 ### Browser Control (Single Instance)
 | Endpoint | HTTP | CLI Command |
 |----------|------|-------------|
-| `/navigate` | POST | `pinchtab nav https://example.com` |
+| `/navigate` | POST | `pinchtab nav https://pinchtab.com` |
 | `/snapshot` | GET | `pinchtab snap -i -c` |
 | `/screenshot` | GET | `pinchtab ss -o out.png` |
 | `/action` | POST | `pinchtab click e5` |
 | `/actions` | POST | `pinchtab action -f actions.json` |
-| `/tab` | POST | `pinchtab tab create https://example.com` |
+| `/tab` | POST | `pinchtab tab create https://pinchtab.com` |
 | `/tabs` | GET | `pinchtab tabs` |
 | `/evaluate` | POST | `pinchtab eval "document.title"` |
 | `/tabs/{id}/pdf` | GET | `pinchtab pdf --tab <tabId> -o out.pdf --landscape` |
 | `/text` | GET | `pinchtab text` |
 | `/text` | GET | `pinchtab text --raw` |
 | `/cookies` | GET | `pinchtab cookies` |
-| `/cookies` | POST | `pinchtab cookies --set 'name=value; domain=.example.com'` |
+| `/cookies` | POST | `pinchtab cookies --set 'name=value; domain=.pinchtab.com'` |
 
 ### Orchestrator Proxying (Instance-scoped)
 | Endpoint | HTTP | CLI Command |
 |----------|------|-------------|
-| `/tabs/{id}/navigate` | POST | `pinchtab instance navigate <id> https://example.com` |
+| `/tabs/{id}/navigate` | POST | `pinchtab instance navigate <id> https://pinchtab.com` |
 | `/tabs/{id}/snapshot` | GET | `pinchtab tab <tabId> snapshot -i` |
 | `/tabs/{id}/screenshot` | GET | `pinchtab tab screenshot <tabId> -o out.jpg` |
 | `/tabs/{id}/action` | POST | `pinchtab tab click <tabId> e5` |
@@ -246,7 +246,7 @@ pinchtab --instance inst_abc123 snap -c > page.json
 pinchtab --instance inst_abc123 tabs
 
 # Create new tab
-TAB_ID=$(pinchtab --instance inst_abc123 tab create https://example.com | jq -r .id)
+TAB_ID=$(pinchtab --instance inst_abc123 tab create https://pinchtab.com | jq -r .id)
 
 # Lock tab (prevent other agents from using it)
 pinchtab --instance inst_abc123 tab $TAB_ID lock --owner my-agent --ttl 60

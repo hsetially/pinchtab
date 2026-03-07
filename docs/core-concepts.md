@@ -157,12 +157,12 @@ pinchtab instance launch  # Uses temp auto-generated profile
 **Separate User Accounts:**
 ```text
 Instance 1 (profile: alice)
-  ├── Tab 1: alice@example.com logged in
-  └── Tab 2: alice@example.com dashboard
+  ├── Tab 1: alice@pinchtab.com logged in
+  └── Tab 2: alice@pinchtab.com dashboard
 
 Instance 2 (profile: bob)
-  ├── Tab 1: bob@example.com logged in
-  └── Tab 2: bob@example.com dashboard
+  ├── Tab 1: bob@pinchtab.com logged in
+  └── Tab 2: bob@pinchtab.com dashboard
 ```
 
 ```bash
@@ -188,7 +188,7 @@ curl -X POST http://localhost:9867/instances/start \
 
 # Navigate and log in
 curl -X POST http://localhost:9867/instances/inst_xyz/navigate \
-  -d '{"url": "https://example.com/login"}'
+  -d '{"url": "https://pinchtab.com/login"}'
 # ... fill login form, click submit ...
 
 # Later (even after instance restart): Profile is persistent
@@ -213,11 +213,11 @@ A **browser tab** (webpage) within an instance and its profile.
 # Create tab in instance (returns tabId)
 curl -X POST http://localhost:9867/instances/inst_0a89a5bb/tabs/open \
   -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com"}' | jq '.tabId'
+  -d '{"url": "https://pinchtab"}' | jq '.tabId'
 # Returns: "tab_abc123"
 
 # Or via CLI
-pinchtab tab open inst_0a89a5bb https://example.com
+pinchtab tab open inst_0a89a5bb https://pinchtab.com
 
 # Get tab info
 curl http://localhost:9867/tabs/tab_abc123 | jq .
@@ -250,7 +250,7 @@ pinchtab tab close tab_abc123
 PinchTab Orchestrator (HTTP server on port 9867)
   │
   ├── Instance 1 (inst_0a89a5bb, port 9868, temp profile)
-  │     ├── Tab 1 (tab_xyz123, https://example.com)
+  │     ├── Tab 1 (tab_xyz123, https://pinchtab.com)
   │     ├── Tab 2 (tab_xyz124, https://google.com)
   │     └── Tab 3 (tab_xyz125, https://github.com)
   │
@@ -259,7 +259,7 @@ PinchTab Orchestrator (HTTP server on port 9867)
   │     └── Tab 2 (tab_abc002, internal docs)
   │
   └── Instance 3 (inst_2c8a5eef, port 9870, profile: personal)
-        ├── Tab 1 (tab_def001, gmail, logged in as bob@example.com)
+        ├── Tab 1 (tab_def001, gmail, logged in as bob@pinchtab.com)
         └── Tab 2 (tab_def002, bank.com)
 ```
 
@@ -291,7 +291,7 @@ INST=$(pinchtab instance launch --mode headless)
 
 # Create multiple tabs in the same instance
 curl -X POST http://localhost:9867/instances/$INST/tabs/open \
-  -d '{"url":"https://example.com"}'
+  -d '{"url":"https://pinchtab.com"}'
 
 curl -X POST http://localhost:9867/instances/$INST/tabs/open \
   -d '{"url":"https://google.com"}'
@@ -324,10 +324,10 @@ INST_BOB=$(curl -X POST http://localhost:9867/instances/start \
 
 # Create tabs in both instances with isolated cookies
 curl -X POST http://localhost:9867/instances/$INST_ALICE/tabs/open \
-  -d '{"url":"https://app.example.com"}'
+  -d '{"url":"https://app.pinchtab.com"}'
 
 curl -X POST http://localhost:9867/instances/$INST_BOB/tabs/open \
-  -d '{"url":"https://app.example.com"}'
+  -d '{"url":"https://app.pinchtab.com"}'
 
 # Login in each instance separately — profiles keep sessions isolated
 ```
@@ -340,7 +340,7 @@ INST=$(pinchtab instance launch)
 
 # Create tab, use it
 curl -X POST http://localhost:9867/instances/$INST/tabs/open \
-  -d '{"url":"https://example.com"}'
+  -d '{"url":"https://pinchtab.com"}'
 # ... work ...
 
 # Stop instance
@@ -368,7 +368,7 @@ done
 
 # Now safe to make requests to the instance
 curl -X POST http://localhost:9867/instances/$INST/navigate \
-  -d '{"url":"https://example.com"}'
+  -d '{"url":"https://pinchtab.com"}'
 ```
 
 ---

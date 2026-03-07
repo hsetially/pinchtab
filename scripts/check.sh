@@ -2,7 +2,7 @@
 set -e
 
 # check.sh — Local pre-push checks matching GitHub Actions CI
-# Runs: format → vet → build → tests (via test.sh) → lint
+# Runs: format → vet → build → lint
 
 cd "$(dirname "$0")/.."
 
@@ -20,7 +20,7 @@ hint() { echo -e "    ${MUTED}$1${NC}"; }
 
 section() {
   echo ""
-  echo -e "${ACCENT}${BOLD}$1${NC}"
+  echo -e "  ${ACCENT}${BOLD}$1${NC}"
 }
 
 trap 'rm -f pinchtab coverage.out 2>/dev/null' EXIT
@@ -70,10 +70,6 @@ if ! go build -o pinchtab ./cmd/pinchtab 2>&1; then
   exit 1
 fi
 ok "go build"
-
-# ── Tests (delegates to test.sh) ─────────────────────────────────────
-
-bash scripts/test.sh all
 
 # ── Lint ─────────────────────────────────────────────────────────────
 

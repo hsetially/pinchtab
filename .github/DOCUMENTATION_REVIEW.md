@@ -255,11 +255,11 @@ When given the task "Review documentation", verify:
 ❌ **Outdated examples:**
 ```bash
 # OLD (deprecated)
-pinchtab nav https://example.com   # ← This command was removed
+pinchtab nav https://pinchtab.com   # ← This command was removed
 
 # NEW (correct)
 curl -X POST http://localhost:9867/navigate \
-  -d '{"url":"https://example.com"}'
+  -d '{"url":"https://pinchtab.com"}'
 ```
 
 ❌ **Wrong API format:**

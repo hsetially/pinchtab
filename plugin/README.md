@@ -66,7 +66,7 @@ One tool definition, many actions — keeps context lean:
 ## Agent Usage Example
 
 ```
-1. pinchtab({ action: "navigate", url: "https://example.com/search" })
+1. pinchtab({ action: "navigate", url: "https://pinchtab.com/search" })
 2. pinchtab({ action: "snapshot", filter: "interactive", format: "compact" })
    → Returns refs: e0, e5, e12...
 3. pinchtab({ action: "click", ref: "e5" })

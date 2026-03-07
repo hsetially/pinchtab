@@ -11,7 +11,7 @@ import (
 
 // T1: Readability mode
 func TestText_Readability(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	code, body := httpGet(t, "/text?tabId="+url.QueryEscape(currentTabID))
 	if code != 200 {
 		t.Fatalf("expected 200, got %d", code)
@@ -24,7 +24,7 @@ func TestText_Readability(t *testing.T) {
 
 // T2: Raw mode
 func TestText_Raw(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	code, body := httpGet(t, "/text?mode=raw&tabId="+url.QueryEscape(currentTabID))
 	if code != 200 {
 		t.Fatalf("expected 200, got %d", code)
@@ -37,10 +37,10 @@ func TestText_Raw(t *testing.T) {
 
 // T3: Text with specific tabId
 func TestText_WithTabId(t *testing.T) {
-	// Create first tab and navigate to example.com
+	// Create first tab and navigate to pinchtab.com
 	code, body := httpPost(t, "/tab", map[string]string{
 		"action": "new",
-		"url":    "https://example.com",
+		"url":    examplePageURL(t),
 	})
 	if code != 200 {
 		t.Skip("could not create first tab")
@@ -55,7 +55,7 @@ func TestText_WithTabId(t *testing.T) {
 	// Create second tab and navigate to httpbin.org
 	code, body = httpPost(t, "/tab", map[string]string{
 		"action": "new",
-		"url":    "https://httpbin.org",
+		"url":    formsPageURL(t),
 	})
 	if code != 200 {
 		t.Skip("could not create second tab")
@@ -103,7 +103,7 @@ func TestText_NoTab(t *testing.T) {
 
 // T5: Token efficiency (real-world content)
 func TestText_TokenEfficiency(t *testing.T) {
-	navigate(t, "https://google.com")
+	navigate(t, largePageURL(t))
 	code, body := httpGet(t, "/text?tabId="+url.QueryEscape(currentTabID))
 	if code != 200 {
 		t.Fatalf("expected 200, got %d", code)

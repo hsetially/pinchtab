@@ -24,8 +24,8 @@ func TestComposite(t *testing.T) {
 		},
 		{
 			name: "role name and value",
-			desc: ElementDescriptor{Ref: "e1", Role: "textbox", Name: "Email", Value: "user@example.com"},
-			want: "textbox: Email [user@example.com]",
+			desc: ElementDescriptor{Ref: "e1", Role: "textbox", Name: "Email", Value: "user@pinchtab.com"},
+			want: "textbox: Email [user@pinchtab.com]",
 		},
 		{
 			name: "name only",
@@ -756,10 +756,10 @@ func complexTableElements() []ElementDescriptor {
 		{Ref: "e7", Role: "columnheader", Name: "Role"},
 		{Ref: "e8", Role: "columnheader", Name: "Status"},
 		{Ref: "e9", Role: "columnheader", Name: "Actions"},
-		{Ref: "e10", Role: "cell", Name: "John Doe", Value: "john@example.com"},
+		{Ref: "e10", Role: "cell", Name: "John Doe", Value: "john@pinchtab.com"},
 		{Ref: "e11", Role: "button", Name: "Edit", Value: "John Doe"},
 		{Ref: "e12", Role: "button", Name: "Delete", Value: "John Doe"},
-		{Ref: "e13", Role: "cell", Name: "Jane Smith", Value: "jane@example.com"},
+		{Ref: "e13", Role: "cell", Name: "Jane Smith", Value: "jane@pinchtab.com"},
 		{Ref: "e14", Role: "button", Name: "Edit", Value: "Jane Smith"},
 		{Ref: "e15", Role: "button", Name: "Delete", Value: "Jane Smith"},
 		{Ref: "e16", Role: "button", Name: "Previous Page"},

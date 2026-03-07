@@ -2,6 +2,7 @@ package orchestrator
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
@@ -17,31 +18,11 @@ import (
 	"github.com/pinchtab/pinchtab/internal/allocation"
 	"github.com/pinchtab/pinchtab/internal/api/types"
 	"github.com/pinchtab/pinchtab/internal/bridge"
+	"github.com/pinchtab/pinchtab/internal/config"
 	"github.com/pinchtab/pinchtab/internal/idutil"
 	"github.com/pinchtab/pinchtab/internal/instance"
 	"github.com/pinchtab/pinchtab/internal/profiles"
 )
-
-func envWithFallback(newKey, oldKey string) string {
-	if v := os.Getenv(newKey); v != "" {
-		return v
-	}
-	return os.Getenv(oldKey)
-}
-
-func envBoolWithFallback(newKey, oldKey string, fallback bool) bool {
-	v := strings.TrimSpace(strings.ToLower(envWithFallback(newKey, oldKey)))
-	switch v {
-	case "1", "true", "yes", "on":
-		return true
-	case "0", "false", "no", "off":
-		return false
-	case "":
-		return fallback
-	default:
-		return fallback
-	}
-}
 
 // InstanceEvent is emitted when instance state changes.
 type InstanceEvent struct {
@@ -66,6 +47,7 @@ type Orchestrator struct {
 	idMgr          *idutil.Manager
 	eventHandlers  []EventHandler
 	instanceMgr    *instance.Manager
+	runtimeCfg     *config.RuntimeConfig
 }
 
 // OnEvent adds an event handler for instance lifecycle events.
@@ -148,8 +130,8 @@ func NewOrchestratorWithRunner(baseDir string, runner HostRunner) *Orchestrator 
 		// - Short timeout (<5s) would break first-request scenarios
 		// See: internal/orchestrator/health.go (monitor), internal/bridge/init.go (InitChrome)
 		client:         &http.Client{Timeout: 60 * time.Second},
-		childAuthToken: envWithFallback("PINCHTAB_TOKEN", "BRIDGE_TOKEN"),
-		allowEvaluate:  envBoolWithFallback("PINCHTAB_ALLOW_EVALUATE", "BRIDGE_ALLOW_EVALUATE", false),
+		childAuthToken: "",
+		allowEvaluate:  false,
 		portAllocator:  NewPortAllocator(9868, 9968),
 		idMgr:          idutil.NewManager(),
 	}
@@ -202,6 +184,23 @@ func (o *Orchestrator) syncInstanceToManager(inst *bridge.Instance) {
 
 func (o *Orchestrator) SetProfileManager(pm *profiles.ProfileManager) {
 	o.profiles = pm
+}
+
+func (o *Orchestrator) ApplyRuntimeConfig(cfg *config.RuntimeConfig) {
+	o.runtimeCfg = cfg
+	if cfg == nil {
+		o.childAuthToken = ""
+		o.allowEvaluate = false
+		return
+	}
+	o.childAuthToken = cfg.Token
+	o.allowEvaluate = cfg.AllowEvaluate
+	o.SetPortRange(cfg.InstancePortStart, cfg.InstancePortEnd)
+	if cfg.AllocationPolicy != "" {
+		if err := o.SetAllocationPolicy(cfg.AllocationPolicy); err != nil {
+			slog.Warn("failed to apply allocation policy", "policy", cfg.AllocationPolicy, "err", err)
+		}
+	}
 }
 
 func (o *Orchestrator) SetPortRange(start, end int) {
@@ -281,23 +280,20 @@ func (o *Orchestrator) Launch(name, port string, headless bool, extensionPaths [
 		return nil, fmt.Errorf("create state dir: %w", err)
 	}
 
-	headlessStr := "true"
-	if !headless {
-		headlessStr = "false"
+	childConfigPath, err := o.writeChildConfig(port, profilePath, instanceStateDir, headless, extensionPaths)
+	if err != nil {
+		return nil, fmt.Errorf("write child config: %w", err)
 	}
 
 	envOverrides := map[string]string{
-		"PINCHTAB_PORT":        port,
-		"PINCHTAB_PROFILE_DIR": profilePath,
-		"PINCHTAB_STATE_DIR":   instanceStateDir,
-		"PINCHTAB_HEADLESS":    headlessStr,
-		"PINCHTAB_NO_RESTORE":  "true",
-		"PINCHTAB_ONLY":        "1",
+		"PINCHTAB_PORT":   port,
+		"PINCHTAB_CONFIG": childConfigPath,
+		"PINCHTAB_ONLY":   "1",
 	}
-	if len(extensionPaths) > 0 {
-		envOverrides["CHROME_EXTENSION_PATHS"] = strings.Join(extensionPaths, ",")
+	if o.runtimeCfg != nil && o.runtimeCfg.ChromeBinary != "" {
+		envOverrides["CHROME_BIN"] = o.runtimeCfg.ChromeBinary
 	}
-	env := mergeEnvWithOverrides(os.Environ(), envOverrides)
+	env := mergeEnvWithOverrides(filterEnvWithPrefixes(os.Environ(), "BRIDGE_", "PINCHTAB_"), envOverrides)
 
 	logBuf := newRingBuffer(64 * 1024)
 	slog.Info("starting instance process", "id", instanceID, "profile", name, "port", port)
@@ -327,6 +323,81 @@ func (o *Orchestrator) Launch(name, port string, headless bool, extensionPaths [
 	o.mu.Unlock()
 
 	go o.monitor(inst)
+
+	return &inst.Instance, nil
+}
+
+func (o *Orchestrator) writeChildConfig(port, profilePath, instanceStateDir string, headless bool, extensionPaths []string) (string, error) {
+	fc := config.FileConfigFromRuntime(o.runtimeCfg)
+	fc.Server.Port = port
+	fc.Server.StateDir = instanceStateDir
+	fc.Profiles.BaseDir = filepath.Dir(profilePath)
+	fc.Profiles.DefaultProfile = filepath.Base(profilePath)
+	if headless {
+		fc.InstanceDefaults.Mode = "headless"
+	} else {
+		fc.InstanceDefaults.Mode = "headed"
+	}
+	noRestore := true
+	fc.InstanceDefaults.NoRestore = &noRestore
+	if len(extensionPaths) > 0 {
+		fc.Browser.ExtensionPaths = append([]string(nil), extensionPaths...)
+	}
+
+	configPath := filepath.Join(instanceStateDir, "config.json")
+	data, err := json.MarshalIndent(fc, "", "  ")
+	if err != nil {
+		return "", err
+	}
+	if err := os.WriteFile(configPath, data, 0644); err != nil {
+		return "", err
+	}
+	return configPath, nil
+}
+
+// Attach connects to an externally managed Chrome instance via CDP URL.
+// Unlike Launch, this does not start a Chrome process - it only registers
+// the external instance for tracking and proxying.
+func (o *Orchestrator) Attach(name, cdpURL string) (*bridge.Instance, error) {
+	o.mu.Lock()
+
+	// Check for duplicate name
+	for _, inst := range o.instances {
+		if inst.ProfileName == name && instanceIsActive(inst) {
+			o.mu.Unlock()
+			return nil, fmt.Errorf("instance with name %q already exists", name)
+		}
+	}
+	o.mu.Unlock()
+
+	// Generate IDs (use name as pseudo-profile)
+	profileID := o.idMgr.ProfileID(name)
+	instanceID := o.idMgr.InstanceID(profileID, name)
+
+	inst := &InstanceInternal{
+		Instance: bridge.Instance{
+			ID:          instanceID,
+			ProfileID:   profileID,
+			ProfileName: name,
+			Status:      "running",
+			StartTime:   time.Now(),
+			Attached:    true,
+			CdpURL:      cdpURL,
+		},
+		URL: cdpURL,
+	}
+
+	o.mu.Lock()
+	o.instances[instanceID] = inst
+	o.mu.Unlock()
+
+	slog.Info("attached to external Chrome", "id", instanceID, "name", name, "cdpUrl", cdpURL)
+
+	// Emit event
+	o.emitEvent("instance.attached", &inst.Instance)
+
+	// Sync to instance manager if available
+	o.syncInstanceToManager(&inst.Instance)
 
 	return &inst.Instance, nil
 }

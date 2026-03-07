@@ -9,7 +9,7 @@ import (
 
 // N1: Basic navigate
 func TestNavigate_Basic(t *testing.T) {
-	code, body := httpPost(t, "/navigate", map[string]string{"url": "https://example.com"})
+	code, body := httpPost(t, "/navigate", map[string]string{"url": examplePageURL(t)})
 	if code != 200 {
 		t.Fatalf("expected 200, got %d (body: %s)", code, body)
 	}
@@ -45,7 +45,7 @@ func TestNavigate_BadJSON(t *testing.T) {
 
 // N2: Navigate returns title
 func TestNavigate_ReturnsTitle(t *testing.T) {
-	code, body := httpPost(t, "/navigate", map[string]string{"url": "https://example.com"})
+	code, body := httpPost(t, "/navigate", map[string]string{"url": examplePageURL(t)})
 	if code != 200 {
 		t.Fatalf("expected 200, got %d", code)
 	}
@@ -58,7 +58,7 @@ func TestNavigate_ReturnsTitle(t *testing.T) {
 // N4: Navigate with newTab
 func TestNavigate_NewTab(t *testing.T) {
 	code, body := httpPost(t, "/navigate", map[string]any{
-		"url":    "https://example.com",
+		"url":    examplePageURL(t),
 		"newTab": true,
 	})
 	if code != 200 {
@@ -86,9 +86,9 @@ func TestNavigate_Timeout(t *testing.T) {
 
 // N3: Navigate with title verification
 func TestNavigate_SPATitle(t *testing.T) {
-	// Use a page that definitely has a title - example.com has "Example Domain" as title
+	// Use a page that definitely has a title - pinchtab.com has "Example Domain" as title
 	// Use retry logic for stability in CI/slow environments
-	code, body := httpPostWithRetry(t, "/navigate", map[string]any{"url": "https://example.com"}, 2)
+	code, body := httpPostWithRetry(t, "/navigate", map[string]any{"url": examplePageURL(t)}, 2)
 	if code != 200 {
 		t.Fatalf("expected 200, got %d", code)
 	}
@@ -96,7 +96,7 @@ func TestNavigate_SPATitle(t *testing.T) {
 	if title == "" {
 		t.Error("expected non-empty title in response")
 	}
-	// Verify we got the expected title from example.com
+	// Verify we got the expected title from pinchtab.com
 	if title != "Example Domain" {
 		t.Logf("got title: %q", title)
 	}

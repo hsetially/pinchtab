@@ -88,10 +88,10 @@ describe("ProfileCard", () => {
   it("displays account email", () => {
     const profileWithEmail = {
       ...mockProfile,
-      accountEmail: "test@example.com",
+      accountEmail: "test@pinchtab.com",
     };
     render(<ProfileCard profile={profileWithEmail} onLaunch={() => {}} />);
-    expect(screen.getByText("test@example.com")).toBeInTheDocument();
+    expect(screen.getByText("test@pinchtab.com")).toBeInTheDocument();
   });
 
   it("displays account name when no email", () => {

@@ -103,7 +103,7 @@ Response:
   {
     "id": "tab_abc123",
     "title": "Example Domain",
-    "url": "https://example.com/",
+    "url": "https://pinchtab.com/",
     "active": true
   }
 ]
@@ -113,13 +113,13 @@ Response:
 ```bash
 curl -X POST http://localhost:9867/tabs/open \
   -H "Content-Type: application/json" \
-  -d '{"url":"https://example.com"}'
+  -d '{"url":"https://pinchtab.com"}'
 
 Response:
 {
   "id": "tab_abc123",
   "title": "Example Domain",
-  "url": "https://example.com/"
+  "url": "https://pinchtab.com/"
 }
 ```
 
@@ -140,12 +140,12 @@ Response:
 ```bash
 curl -X POST http://localhost:9867/navigate \
   -H "Content-Type: application/json" \
-  -d '{"url":"https://example.com"}'
+  -d '{"url":"https://pinchtab.com"}'
 
 Response:
 {
   "status": "navigated",
-  "url": "https://example.com",
+  "url": "https://pinchtab.com",
   "title": "Example Domain"
 }
 ```
@@ -371,7 +371,7 @@ sleep 2
 
 # Navigate
 TAB=$(curl -s -X POST http://localhost:9867/instances/$INST/tabs/open \
-  -d '{"url":"https://example.com"}' | jq -r '.id')
+  -d '{"url":"https://pinchtab.com"}' | jq -r '.id')
 
 # Snapshot
 curl http://localhost:9867/tabs/$TAB/snapshot
@@ -384,7 +384,7 @@ curl -X POST http://localhost:9867/start
 
 # Navigate
 curl -X POST http://localhost:9867/navigate \
-  -d '{"url":"https://example.com"}'
+  -d '{"url":"https://pinchtab.com"}'
 
 # Snapshot
 curl http://localhost:9867/snapshot
@@ -490,7 +490,7 @@ POST /start?headed=true
 ```bash
 #!/bin/bash
 curl -X POST http://localhost:9867/start
-curl -X POST http://localhost:9867/navigate -d '{"url":"https://example.com"}'
+curl -X POST http://localhost:9867/navigate -d '{"url":"https://pinchtab.com"}'
 curl http://localhost:9867/snapshot | jq '.nodes'
 curl -X POST http://localhost:9867/stop
 ```
@@ -505,7 +505,7 @@ BASE = "http://localhost:9867"
 requests.post(f"{BASE}/start", json={"mode": "headless"})
 
 # Navigate
-requests.post(f"{BASE}/navigate", json={"url": "https://example.com"})
+requests.post(f"{BASE}/navigate", json={"url": "https://pinchtab.com"})
 
 # Snapshot
 snap = requests.get(f"{BASE}/snapshot").json()
@@ -529,7 +529,7 @@ async function automate() {
   // Navigate
   await fetch(`${BASE}/navigate`, {
     method: "POST",
-    body: JSON.stringify({ url: "https://example.com" })
+    body: JSON.stringify({ url: "https://pinchtab.com" })
   });
 
   // Snapshot

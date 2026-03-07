@@ -222,7 +222,7 @@ def test_smcp_style_invoke_navigate_with_kebab_args():
     out, err, code = run_cli(
         "navigate",
         "--base-url", "http://127.0.0.1:9999",
-        "--url", "https://example.com",
+        "--url", "https://pinchtab.com",
     )
     # Server likely unreachable -> connection_error; we only require valid JSON
     data = json.loads(out)

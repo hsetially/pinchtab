@@ -63,7 +63,7 @@ describe("useAppStore", () => {
 
     it("sets current tabs", () => {
       const tabs = {
-        inst_123: [{ id: "tab_1", url: "https://example.com" }],
+        inst_123: [{ id: "tab_1", url: "https://pinchtab.com" }],
       } as any;
       useAppStore.getState().setCurrentTabs(tabs);
       expect(useAppStore.getState().currentTabs).toEqual(tabs);

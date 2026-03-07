@@ -38,7 +38,7 @@ func runDashboard(cfg *config.RuntimeConfig) {
 
 	slog.Info("🦀 PinchTab", "port", dashPort)
 
-	profilesDir := filepath.Join(cfg.StateDir, "profiles")
+	profilesDir := cfg.ProfilesBaseDir
 	if err := os.MkdirAll(profilesDir, 0755); err != nil {
 		slog.Error("cannot create profiles dir", "err", err)
 		os.Exit(1)
@@ -47,8 +47,8 @@ func runDashboard(cfg *config.RuntimeConfig) {
 	profMgr := profiles.NewProfileManager(profilesDir)
 	dash := dashboard.NewDashboard(nil)
 	orch := orchestrator.NewOrchestrator(profilesDir)
+	orch.ApplyRuntimeConfig(cfg)
 	orch.SetProfileManager(profMgr)
-	orch.SetPortRange(cfg.InstancePortStart, cfg.InstancePortEnd)
 	dash.SetInstanceLister(orch)
 
 	// Wire up instance events to SSE broadcast

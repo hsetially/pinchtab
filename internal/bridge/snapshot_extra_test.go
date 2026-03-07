@@ -8,10 +8,10 @@ import (
 func TestFormatSnapshotCompact_Basic(t *testing.T) {
 	nodes := []A11yNode{
 		{Ref: "e0", Role: "button", Name: "Submit"},
-		{Ref: "e1", Role: "textbox", Name: "Email", Value: "test@example.com"},
+		{Ref: "e1", Role: "textbox", Name: "Email", Value: "test@pinchtab.com"},
 	}
 	got := FormatSnapshotCompact(nodes)
-	want := "e0:button \"Submit\"\ne1:textbox \"Email\" val=\"test@example.com\"\n"
+	want := "e0:button \"Submit\"\ne1:textbox \"Email\" val=\"test@pinchtab.com\"\n"
 	if got != want {
 		t.Errorf("got:\n%s\nwant:\n%s", got, want)
 	}

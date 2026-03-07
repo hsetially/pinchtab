@@ -327,7 +327,7 @@ npm install -g pinchtab
 curl -X POST http://localhost:9867/tabs \
   -H "Content-Type: application/json" \
   -d '{
-    "url": "https://example.com",
+    "url": "https://pinchtab.com",
     "actions": [
       {"kind": "wait", "selector": ".content"}
     ]
@@ -364,7 +364,7 @@ const { chromium } = require('playwright');
 (async () => {
   const browser = await chromium.connectOverCDP('http://localhost:9867');
   const page = await browser.newPage();
-  await page.goto('https://example.com');
+  await page.goto('https://pinchtab.com');
   console.log(await page.title());
   await browser.close();
 })();

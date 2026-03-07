@@ -155,7 +155,7 @@ func TestLocator_CacheMiss_QueriesBridges(t *testing.T) {
 	inst, _ := repo.Launch("default", "9868", true)
 
 	// Set up fetcher to return tabs for this instance.
-	fetcher.AddTab("9868", "tab_xyz", "https://example.com")
+	fetcher.AddTab("9868", "tab_xyz", "https://pinchtab.com")
 
 	found, err := locator.FindInstanceByTabID("tab_xyz")
 	if err != nil {
@@ -178,7 +178,7 @@ func TestLocator_TabNotFound(t *testing.T) {
 	locator := instance.NewLocator(repo, fetcher)
 
 	_, _ = repo.Launch("default", "9868", true)
-	fetcher.AddTab("9868", "tab_abc", "https://example.com")
+	fetcher.AddTab("9868", "tab_abc", "https://pinchtab.com")
 
 	_, err := locator.FindInstanceByTabID("nonexistent")
 	if err == nil {

@@ -13,6 +13,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	appconfig "github.com/pinchtab/pinchtab/internal/config"
 )
 
 const (
@@ -22,10 +24,28 @@ const (
 	InstanceTimeout = 30 * time.Second
 )
 
+// ServerConfig mirrors key fields from internal/config.RuntimeConfig for test setup.
+// Only includes fields commonly overridden in tests.
 type ServerConfig struct {
-	Port     string // default: "19867"
-	Headless bool   // default: true
-	Stealth  string // default: "light"
+	// Server
+	Port string // default: "19867"
+
+	// Chrome
+	Headless          bool   // default: true
+	Stealth           string // default: "light"
+	MaxTabs           int    // default: 0 (uses config default: 20)
+	TabEvictionPolicy string // default: "" (uses config default: "reject")
+
+	// Security - all default to true for tests (unlike production defaults)
+	AllowEvaluate   bool // default: true (tests need this)
+	AllowMacro      bool // default: false
+	AllowScreencast bool // default: false
+	AllowDownload   bool // default: false
+	AllowUpload     bool // default: false
+
+	// Orchestrator
+	Strategy         string // default: "" (uses config default: "simple")
+	AllocationPolicy string // default: "" (uses config default: "fcfs")
 }
 
 func DefaultConfig() ServerConfig {
@@ -34,9 +54,13 @@ func DefaultConfig() ServerConfig {
 		port = "19867"
 	}
 	return ServerConfig{
-		Port:     port,
-		Headless: true,
-		Stealth:  "light",
+		Port:            port,
+		Headless:        true,
+		Stealth:         "light",
+		AllowEvaluate:   true, // tests need evaluate for assertions
+		AllowDownload:   true, // tests validate download error handling
+		AllowUpload:     true, // tests validate upload error handling
+		AllowScreencast: true, // orchestrator uses /screencast/tabs to fetch tabs
 	}
 }
 
@@ -85,6 +109,11 @@ func StartServer(cfg ServerConfig) (*Server, error) {
 		}
 	}
 
+	if err := writeServerConfig(filepath.Join(s.Dir, "config.json"), s, cfg); err != nil {
+		s.Cleanup()
+		return nil, fmt.Errorf("write config: %w", err)
+	}
+
 	build := exec.Command("go", "build", "-o", s.BinaryPath, "./cmd/pinchtab/") // #nosec G204 -- BinaryPath is from os.MkdirTemp, not user input
 	build.Dir = FindRepoRoot()
 	build.Stdout = os.Stdout
@@ -96,28 +125,18 @@ func StartServer(cfg ServerConfig) (*Server, error) {
 
 	// Strip existing BRIDGE_*/PINCHTAB_* to avoid test pollution from host config
 	env := filterEnv(os.Environ(), "BRIDGE_", "PINCHTAB_")
+
+	// Keep env limited to process wiring. Runtime behavior now comes from config.json.
 	env = append(env,
 		"PINCHTAB_PORT="+cfg.Port,
-		"PINCHTAB_HEADLESS="+boolStr(cfg.Headless),
-		"PINCHTAB_NO_RESTORE=true",
-		"PINCHTAB_STEALTH="+cfg.Stealth,
-		"PINCHTAB_STATE_DIR="+s.StateDir,
-		"PINCHTAB_PROFILE_DIR="+s.ProfileDir,
+		"PINCHTAB_CONFIG="+filepath.Join(s.Dir, "config.json"), // Isolate from host config
 	)
-	if bin := os.Getenv("CHROME_BINARY"); bin != "" {
-		env = append(env, "CHROME_BINARY="+bin)
-	}
-	// Pass through feature gates for integration tests
-	for _, gate := range []string{
-		"PINCHTAB_ALLOW_EVALUATE",
-		"PINCHTAB_ALLOW_MACRO",
-		"PINCHTAB_ALLOW_SCREENCAST",
-		"PINCHTAB_ALLOW_DOWNLOAD",
-		"PINCHTAB_ALLOW_UPLOAD",
-	} {
-		if v := os.Getenv(gate); v != "" {
-			env = append(env, gate+"="+v)
-		}
+
+	// Chrome binary from host (for CI environments)
+	if bin := os.Getenv("CHROME_BIN"); bin != "" {
+		env = append(env, "CHROME_BIN="+bin)
+	} else if legacyBin := os.Getenv("CHROME_BINARY"); legacyBin != "" {
+		env = append(env, "CHROME_BIN="+legacyBin)
 	}
 
 	s.cmd = exec.Command(s.BinaryPath) // #nosec G204 -- BinaryPath is from os.MkdirTemp, not user input
@@ -141,6 +160,57 @@ func StartServer(cfg ServerConfig) (*Server, error) {
 	}
 
 	return s, nil
+}
+
+func writeServerConfig(path string, srv *Server, cfg ServerConfig) error {
+	fc := appconfig.DefaultFileConfig()
+	fc.Server.Port = cfg.Port
+	fc.Server.StateDir = srv.StateDir
+	fc.Profiles.BaseDir = srv.ProfileDir
+	fc.Profiles.DefaultProfile = "default"
+
+	fc.InstanceDefaults.Mode = modeString(cfg.Headless)
+	noRestore := true
+	fc.InstanceDefaults.NoRestore = &noRestore
+	fc.InstanceDefaults.StealthLevel = cfg.Stealth
+	if cfg.MaxTabs > 0 {
+		maxTabs := cfg.MaxTabs
+		fc.InstanceDefaults.MaxTabs = &maxTabs
+	}
+	if cfg.TabEvictionPolicy != "" {
+		fc.InstanceDefaults.TabEvictionPolicy = cfg.TabEvictionPolicy
+	}
+
+	allowEvaluate := cfg.AllowEvaluate
+	allowMacro := cfg.AllowMacro
+	allowScreencast := cfg.AllowScreencast
+	allowDownload := cfg.AllowDownload
+	allowUpload := cfg.AllowUpload
+	fc.Security.AllowEvaluate = &allowEvaluate
+	fc.Security.AllowMacro = &allowMacro
+	fc.Security.AllowScreencast = &allowScreencast
+	fc.Security.AllowDownload = &allowDownload
+	fc.Security.AllowUpload = &allowUpload
+
+	if cfg.Strategy != "" {
+		fc.MultiInstance.Strategy = cfg.Strategy
+	}
+	if cfg.AllocationPolicy != "" {
+		fc.MultiInstance.AllocationPolicy = cfg.AllocationPolicy
+	}
+
+	data, err := json.MarshalIndent(fc, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(path, data, 0o644)
+}
+
+func modeString(headless bool) string {
+	if headless {
+		return "headless"
+	}
+	return "headed"
 }
 
 func (s *Server) Stop() {
@@ -304,11 +374,4 @@ func filterEnv(env []string, prefixes ...string) []string {
 		}
 	}
 	return out
-}
-
-func boolStr(b bool) string {
-	if b {
-		return "true"
-	}
-	return "false"
 }

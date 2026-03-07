@@ -27,7 +27,7 @@ func (h *Handlers) HandleHealth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := map[string]any{"status": "ok", "tabs": len(targets), "cdp": h.Config.CdpURL}
+	resp := map[string]any{"status": "ok", "tabs": len(targets)}
 
 	// Include crash logs if any
 	if crashLogs := h.Bridge.GetCrashLogs(); len(crashLogs) > 0 {

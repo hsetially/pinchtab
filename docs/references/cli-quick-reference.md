@@ -57,16 +57,16 @@ pinchtab instance inst_abc123 stop
 ### Navigate
 ```bash
 # Default instance
-pinchtab nav https://example.com
+pinchtab nav https://pinchtab.com
 
 # Specific instance
-pinchtab --instance inst_abc123 nav https://example.com
+pinchtab --instance inst_abc123 nav https://pinchtab.com
 
 # Open in new tab
-pinchtab --instance inst_abc123 nav https://example.com --new-tab
+pinchtab --instance inst_abc123 nav https://pinchtab.com --new-tab
 
 # Without images (faster)
-pinchtab --instance inst_abc123 nav https://example.com --block-images
+pinchtab --instance inst_abc123 nav https://pinchtab.com --block-images
 ```
 
 ### Snapshot page
@@ -192,7 +192,7 @@ pinchtab --instance inst_abc123 tabs | jq '.tabs | length'
 ### Create tab
 ```bash
 # Create and get ID
-TAB=$(pinchtab --instance inst_abc123 tab create https://example.com | jq -r .id)
+TAB=$(pinchtab --instance inst_abc123 tab create https://pinchtab.com | jq -r .id)
 echo $TAB  # tab_xyz789
 ```
 
@@ -330,7 +330,7 @@ done
 ```bash
 # Navigate multiple instances concurrently
 for inst in $(pinchtab instances | jq -r '.[] | .id'); do
-  (pinchtab --instance $inst nav https://example.com) &
+  (pinchtab --instance $inst nav https://pinchtab.com) &
 done
 wait
 
@@ -432,7 +432,7 @@ export PINCHTAB_NO_COLOR=1
 
 ### Wait for page load, then interact
 ```bash
-pinchtab --instance inst_abc123 nav https://example.com
+pinchtab --instance inst_abc123 nav https://pinchtab.com
 sleep 2  # Wait for page
 pinchtab --instance inst_abc123 snap -i
 ```
@@ -447,7 +447,7 @@ pinchtab --instance inst_abc123 ss -o result.png
 ### Form fill
 ```bash
 pinchtab --instance inst_abc123 fill e1 "John Doe"
-pinchtab --instance inst_abc123 fill e2 "john@example.com"
+pinchtab --instance inst_abc123 fill e2 "john@pinchtab.com"
 pinchtab --instance inst_abc123 click e3  # Submit button
 sleep 2
 pinchtab --instance inst_abc123 snap

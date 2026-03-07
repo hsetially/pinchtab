@@ -45,11 +45,11 @@ SMCP plugin for [PinchTab](https://github.com/pinchtab/pinchtab): browser contro
 
 1. Agent calls tool **`pinchtab__navigate`** with arguments (e.g. from MCP client):
    ```json
-   { "base_url": "http://localhost:9867", "instance_id": "inst_0a89a5bb", "url": "https://example.com" }
+   { "base_url": "http://localhost:9867", "instance_id": "inst_0a89a5bb", "url": "https://pinchtab.com" }
    ```
 2. SMCP invokes:
    ```bash
-   python cli.py navigate --base-url http://localhost:9867 --instance-id inst_0a89a5bb --url https://example.com
+   python cli.py navigate --base-url http://localhost:9867 --instance-id inst_0a89a5bb --url https://pinchtab.com
    ```
 3. Plugin prints to stdout:
    ```json

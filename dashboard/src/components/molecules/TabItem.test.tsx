@@ -6,7 +6,7 @@ import type { InstanceTab } from "../../generated/types";
 const mockTab: InstanceTab = {
   id: "tab_123",
   instanceId: "inst_456",
-  url: "https://example.com/page",
+  url: "https://pinchtab.com/page",
   title: "Example Page",
 };
 
@@ -15,7 +15,7 @@ describe("TabItem", () => {
     render(<TabItem tab={mockTab} />);
 
     expect(screen.getByText("Example Page")).toBeInTheDocument();
-    expect(screen.getByText("https://example.com/page")).toBeInTheDocument();
+    expect(screen.getByText("https://pinchtab.com/page")).toBeInTheDocument();
   });
 
   it("shows Untitled for tabs without title", () => {

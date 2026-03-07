@@ -31,7 +31,7 @@ func TestTabs_List(t *testing.T) {
 func TestTabs_New(t *testing.T) {
 	code, body := httpPost(t, "/tab", map[string]string{
 		"action": "new",
-		"url":    "https://example.com",
+		"url":    examplePageURL(t),
 	})
 	if code != 200 {
 		t.Fatalf("expected 200, got %d (body: %s)", code, body)
@@ -53,7 +53,7 @@ func TestTabs_Close(t *testing.T) {
 	// Create a tab to close
 	_, newBody := httpPost(t, "/tab", map[string]string{
 		"action": "new",
-		"url":    "https://example.com",
+		"url":    examplePageURL(t),
 	})
 	var newTab map[string]any
 	_ = json.Unmarshal(newBody, &newTab)
@@ -107,7 +107,7 @@ func TestTabs_MaxTabs(t *testing.T) {
 	for i := 0; i < 20; i++ {
 		code, body := httpPost(t, "/tab", map[string]string{
 			"action": "new",
-			"url":    "https://example.com",
+			"url":    examplePageURL(t),
 		})
 		if code == 200 {
 			var newTab map[string]any
@@ -181,7 +181,7 @@ func TestTabs_RejectsNonexistentID(t *testing.T) {
 
 	// Try to navigate using nonexistent tab ID - should fail with 404
 	code, _ := httpPost(t, "/tabs/"+rawCDPID+"/navigate", map[string]string{
-		"url": "https://example.com",
+		"url": examplePageURL(t),
 	})
 	if code != 404 {
 		t.Errorf("expected 404 for raw CDP ID, got %d", code)

@@ -71,11 +71,9 @@ func TestRefCacheLookup(t *testing.T) {
 
 func TestTabManagerRemoteAllocatorInitialization(t *testing.T) {
 	// Test that TabManager can be initialized without a valid browser context.
-	// This is the case for remote allocators (CDP_URL mode) where the browser
-	// context is established lazily.
-	cfg := &config.RuntimeConfig{
-		CdpURL: "ws://localhost:9222/devtools/browser/test",
-	}
+	// This is the case for remote allocators where the browser context is
+	// established lazily.
+	cfg := &config.RuntimeConfig{}
 
 	// Use context.TODO() instead of nil to avoid lint warnings
 	ctx := context.TODO()

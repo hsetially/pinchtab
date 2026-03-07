@@ -156,7 +156,7 @@ GET /instances
     "port": "9869",
     "startTime": "2026-02-28T18:35:20Z",
     "tabs": [
-      {"id": "tab-3", "url": "https://api.example.com", "title": "API"}
+      {"id": "tab-3", "url": "https://api.pinchtab.com", "title": "API"}
     ]
   }
 ]
@@ -233,7 +233,7 @@ POST /instances/{id}/tabs/open
 ```json
 {
   "tabId": "tab-1",
-  "url": "https://example.com",
+  "url": "https://pinchtab.com",
   "title": "Example Domain"
 }
 ```
@@ -254,7 +254,7 @@ curl -X POST http://localhost:9867/instances/work-9868/tabs/open \
 ```bash
 TAB_JSON=$(curl -s -X POST http://localhost:9867/instances/work-9868/tabs/open \
   -H "Content-Type: application/json" \
-  -d '{"url":"https://example.com"}')
+  -d '{"url":"https://pinchtab.com"}')
 TAB_ID=$(echo $TAB_JSON | jq -r '.tabId')
 echo "Opened tab: $TAB_ID"
 ```
@@ -386,7 +386,7 @@ POST /tabs/{id}/action
 {
   "kind": "type",
   "ref": "e1",
-  "text": "user@example.com"
+  "text": "user@pinchtab.com"
 }
 ```
 
@@ -394,7 +394,7 @@ POST /tabs/{id}/action
 ```bash
 curl -X POST http://localhost:9867/tabs/tab-1/action \
   -H "Content-Type: application/json" \
-  -d '{"kind":"type","ref":"e1","text":"user@example.com"}'
+  -d '{"kind":"type","ref":"e1","text":"user@pinchtab.com"}'
 ```
 
 ---
@@ -639,7 +639,7 @@ GET /tabs
 [
   {"instanceId": "work-9868", "tabId": "tab-1", "url": "https://linkedin.com", "title": "LinkedIn"},
   {"instanceId": "work-9868", "tabId": "tab-2", "url": "https://github.com", "title": "GitHub"},
-  {"instanceId": "scraping-9869", "tabId": "tab-3", "url": "https://api.example.com", "title": "API"}
+  {"instanceId": "scraping-9869", "tabId": "tab-3", "url": "https://api.pinchtab.com", "title": "API"}
 ]
 ```
 
@@ -686,7 +686,7 @@ echo $SNAP | jq '.elements[]' | head -5
 echo "Entering email..."
 curl -s -X POST "$BASE/instances/$INST_ID/action" \
   -H "Content-Type: application/json" \
-  -d "{\"kind\":\"type\",\"ref\":\"e1\",\"text\":\"user@example.com\",\"tabId\":\"$TAB_ID\"}"
+  -d "{\"kind\":\"type\",\"ref\":\"e1\",\"text\":\"user@pinchtab.com\",\"tabId\":\"$TAB_ID\"}"
 
 # 5. Find password input (ref=e2) and type
 echo "Entering password..."
@@ -797,7 +797,7 @@ pinchtab instances                    # List all
 pinchtab launch --profile work --headed  # Create
 
 # Navigate & interact
-pinchtab nav https://example.com     # Navigate (on default instance)
+pinchtab nav https://pinchtab.com     # Navigate (on default instance)
 pinchtab snap                        # Snapshot
 pinchtab click e5                    # Click
 pinchtab type e1 "text"              # Type

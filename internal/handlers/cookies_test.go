@@ -23,7 +23,7 @@ func TestHandleSetCookies_InvalidJSON(t *testing.T) {
 
 func TestHandleSetCookies_NoTab(t *testing.T) {
 	h := New(&failMockBridge{}, &config.RuntimeConfig{}, nil, nil, nil)
-	body := `{"url":"https://example.com","cookies":[{"name":"a","value":"b"}],"tabId":"nonexistent"}`
+	body := `{"url":"https://pinchtab.com","cookies":[{"name":"a","value":"b"}],"tabId":"nonexistent"}`
 	req := httptest.NewRequest("POST", "/cookies", bytes.NewReader([]byte(body)))
 	w := httptest.NewRecorder()
 
@@ -76,7 +76,7 @@ func TestHandleTabGetCookies_NoTab(t *testing.T) {
 
 func TestHandleTabSetCookies_TabIDMismatch(t *testing.T) {
 	h := New(&mockBridge{}, &config.RuntimeConfig{}, nil, nil, nil)
-	body := `{"tabId":"tab_other","url":"https://example.com","cookies":[{"name":"a","value":"b"}]}`
+	body := `{"tabId":"tab_other","url":"https://pinchtab.com","cookies":[{"name":"a","value":"b"}]}`
 	req := httptest.NewRequest("POST", "/tabs/tab_abc/cookies", bytes.NewReader([]byte(body)))
 	req.SetPathValue("id", "tab_abc")
 	w := httptest.NewRecorder()
@@ -88,7 +88,7 @@ func TestHandleTabSetCookies_TabIDMismatch(t *testing.T) {
 
 func TestHandleTabSetCookies_NoTab(t *testing.T) {
 	h := New(&failMockBridge{}, &config.RuntimeConfig{}, nil, nil, nil)
-	body := `{"url":"https://example.com","cookies":[{"name":"a","value":"b"}]}`
+	body := `{"url":"https://pinchtab.com","cookies":[{"name":"a","value":"b"}]}`
 	req := httptest.NewRequest("POST", "/tabs/tab_abc/cookies", bytes.NewReader([]byte(body)))
 	req.SetPathValue("id", "tab_abc")
 	w := httptest.NewRecorder()

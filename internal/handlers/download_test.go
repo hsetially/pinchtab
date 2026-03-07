@@ -34,16 +34,16 @@ func TestValidateDownloadURL(t *testing.T) {
 		url     string
 		wantErr bool
 	}{
-		{"valid https", "https://example.com/file.pdf", false},
-		{"valid http", "http://example.com/page", false},
+		{"valid https", "https://pinchtab.com/file.pdf", false},
+		{"valid http", "http://pinchtab.com/page", false},
 		{"file scheme", "file:///etc/passwd", true},
-		{"ftp scheme", "ftp://example.com/file", true},
+		{"ftp scheme", "ftp://pinchtab.com/file", true},
 		{"data scheme", "data:text/html,hello", true},
 		{"localhost", "http://localhost:8080/secret", true},
 		{"loopback ipv4", "http://127.0.0.1/secret", true},
 		{"loopback ipv6", "http://[::1]/secret", true},
-		{"empty scheme", "://example.com", true},
-		{"no scheme", "example.com", true},
+		{"empty scheme", "://pinchtab.com", true},
+		{"no scheme", "pinchtab.com", true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -74,7 +74,7 @@ func TestHandleDownload_SSRFBlocked(t *testing.T) {
 
 func TestHandleTabDownload_MissingTabID(t *testing.T) {
 	h := New(&mockBridge{}, &config.RuntimeConfig{AllowDownload: true}, nil, nil, nil)
-	req := httptest.NewRequest("GET", "/tabs//download?url=https://example.com", nil)
+	req := httptest.NewRequest("GET", "/tabs//download?url=https://pinchtab.com", nil)
 	w := httptest.NewRecorder()
 	h.HandleTabDownload(w, req)
 	if w.Code != http.StatusBadRequest {
@@ -84,7 +84,7 @@ func TestHandleTabDownload_MissingTabID(t *testing.T) {
 
 func TestHandleTabDownload_NoTab(t *testing.T) {
 	h := New(&mockBridge{failTab: true}, &config.RuntimeConfig{AllowDownload: true}, nil, nil, nil)
-	req := httptest.NewRequest("GET", "/tabs/tab_abc/download?url=https://example.com", nil)
+	req := httptest.NewRequest("GET", "/tabs/tab_abc/download?url=https://pinchtab.com", nil)
 	req.SetPathValue("id", "tab_abc")
 	w := httptest.NewRecorder()
 	h.HandleTabDownload(w, req)
@@ -95,7 +95,7 @@ func TestHandleTabDownload_NoTab(t *testing.T) {
 
 func TestHandleDownload_Disabled(t *testing.T) {
 	h := New(&mockBridge{}, &config.RuntimeConfig{}, nil, nil, nil)
-	req := httptest.NewRequest("GET", "/download?url=https://example.com/file.txt", nil)
+	req := httptest.NewRequest("GET", "/download?url=https://pinchtab.com/file.txt", nil)
 	w := httptest.NewRecorder()
 	h.HandleDownload(w, req)
 	if w.Code != 403 {

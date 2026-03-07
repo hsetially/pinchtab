@@ -2,7 +2,7 @@
 set -e
 
 # test.sh — Run Go tests with optional scope
-# Usage: test.sh [unit|integration|all]
+# Usage: test.sh [unit|integration|system|all]
 # Default: all
 
 cd "$(dirname "$0")/.."
@@ -14,14 +14,14 @@ ERROR=$'\033[38;2;230;57;70m'
 MUTED=$'\033[38;2;90;100;128m'
 NC=$'\033[0m'
 
-CORE_REGEX='^Test(Health|Orchestrator_|Navigate_|Tabs_|Config_|Metrics_|Cookies_|Error_|Eval_|Upload_|Screenshot_)'
+SYSTEM_REGEX='^(TestProxy_InstanceIsolation|TestOrchestrator_(HealthCheck|HashBasedIDs|PortAllocation|PortReuse|ListInstances|FirstRequestLazyChrome|AggregateTabsEndpoint|StopNonexistent|InstanceCleanup))$'
 
 ok()   { echo -e "  ${SUCCESS}✓${NC} $1"; }
 fail() { echo -e "  ${ERROR}✗${NC} $1"; }
 
 section() {
   echo ""
-  echo -e "${ACCENT}${BOLD}$1${NC}"
+  echo -e "  ${ACCENT}${BOLD}$1${NC}"
 }
 
 # Parse gotestsum JSON and print summary
@@ -64,7 +64,7 @@ test_summary() {
 # Live progress for integration tests
 run_integration() {
   local json_file="$1"; shift
-  local count=0
+  local completed=0
   local max_len=40
 
   go test -json "$@" 2>&1 | tee "$json_file" | while IFS= read -r line; do
@@ -81,21 +81,21 @@ run_integration() {
     fi
 
     case "$action" in
-      run)  printf "\r    ${MUTED}▸ %-${max_len}s${NC}        \r" "$display" ;;
-      pass) count=$((count + 1))
+      run)  printf "\r    ${MUTED}▸${NC} ${MUTED}[%2d]${NC} %-${max_len}s" "$((completed + 1))" "$display" ;;
+      pass) completed=$((completed + 1))
             if [ -n "$elapsed" ]; then
-              printf "\r    ${SUCCESS}✓${NC} ${MUTED}[%2d]${NC} %-${max_len}s ${MUTED}%6ss${NC}\n" "$count" "$display" "$elapsed"
+              printf "\r    ${SUCCESS}✓${NC} ${MUTED}[%2d]${NC} %-${max_len}s ${MUTED}%6ss${NC}" "$completed" "$display" "$elapsed"
             else
-              printf "\r    ${SUCCESS}✓${NC} ${MUTED}[%2d]${NC} %-${max_len}s\n" "$count" "$display"
+              printf "\r    ${SUCCESS}✓${NC} ${MUTED}[%2d]${NC} %-${max_len}s" "$completed" "$display"
             fi ;;
-      fail) count=$((count + 1))
+      fail) completed=$((completed + 1))
             if [ -n "$elapsed" ]; then
-              printf "\r    ${ERROR}✗${NC} ${MUTED}[%2d]${NC} %-${max_len}s ${MUTED}%6ss${NC}\n" "$count" "$display" "$elapsed"
+              printf "\r    ${ERROR}✗${NC} ${MUTED}[%2d]${NC} %-${max_len}s ${MUTED}%6ss${NC}" "$completed" "$display" "$elapsed"
             else
-              printf "\r    ${ERROR}✗${NC} ${MUTED}[%2d]${NC} %-${max_len}s\n" "$count" "$display"
+              printf "\r    ${ERROR}✗${NC} ${MUTED}[%2d]${NC} %-${max_len}s" "$completed" "$display"
             fi ;;
-      skip) count=$((count + 1))
-            printf "\r    ${ACCENT}·${NC} ${MUTED}[%2d]${NC} %-${max_len}s ${MUTED}  skip${NC}\n" "$count" "$display" ;;
+      skip) completed=$((completed + 1))
+            printf "\r    ${ACCENT}·${NC} ${MUTED}[%2d]${NC} %-${max_len}s ${MUTED}  skip${NC}" "$completed" "$display" ;;
     esac
   done
   return ${PIPESTATUS[0]}
@@ -132,40 +132,40 @@ if [ "$SCOPE" = "all" ] || [ "$SCOPE" = "unit" ]; then
   test_summary "$UNIT_JSON" "Unit Test Results"
 fi
 
-# ── Integration tests (Core) ────────────────────────────────────────
+# ── Integration tests ───────────────────────────────────────────────
 
 if [ "$SCOPE" = "all" ] || [ "$SCOPE" = "integration" ]; then
-  section "Integration Tests (Core)"
+  section "Integration Tests"
 
-  CORE_JSON="$TMPDIR_TEST/core.json"
+  INTEGRATION_JSON="$TMPDIR_TEST/integration.json"
 
-  if ! run_integration "$CORE_JSON" \
+  if ! run_integration "$INTEGRATION_JSON" \
     -tags integration -timeout 10m -count=1 \
-    -run "$CORE_REGEX" ./tests/integration/; then
-    fail "Integration core"
-    test_summary "$CORE_JSON" "Core Test Results"
+    -run '^Test' -skip "$SYSTEM_REGEX" ./tests/integration/; then
+    fail "Integration tests"
+    test_summary "$INTEGRATION_JSON" "Integration Test Results"
     exit 1
   fi
   printf "\r%*s\r" 60 ""
-  ok "Integration core"
-  test_summary "$CORE_JSON" "Core Test Results"
+  ok "Integration tests"
+  test_summary "$INTEGRATION_JSON" "Integration Test Results"
+fi
 
-  # ── Integration tests (Rest) ────────────────────────────────────
+if [ "$SCOPE" = "all" ] || [ "$SCOPE" = "system" ]; then
+  section "System Tests"
 
-  section "Integration Tests (Rest)"
+  SYSTEM_JSON="$TMPDIR_TEST/system.json"
 
-  REST_JSON="$TMPDIR_TEST/rest.json"
-
-  if ! run_integration "$REST_JSON" \
+  if ! run_integration "$SYSTEM_JSON" \
     -tags integration -timeout 12m -count=1 \
-    -run '^Test' -skip "$CORE_REGEX" ./tests/integration/; then
-    fail "Integration rest"
-    test_summary "$REST_JSON" "Rest Test Results"
+    -run "$SYSTEM_REGEX" ./tests/integration/; then
+    fail "System tests"
+    test_summary "$SYSTEM_JSON" "System Test Results"
     exit 1
   fi
   printf "\r%*s\r" 60 ""
-  ok "Integration rest"
-  test_summary "$REST_JSON" "Rest Test Results"
+  ok "System tests"
+  test_summary "$SYSTEM_JSON" "System Test Results"
 fi
 
 # ── Summary ──────────────────────────────────────────────────────────

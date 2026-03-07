@@ -49,14 +49,14 @@ Navigate the instance via the orchestrator (recommended):
 ```bash
 curl -X POST http://localhost:9867/instances/inst_a365262a/tabs/open \
   -H "Content-Type: application/json" \
-  -d '{"url":"https://example.com"}'
+  -d '{"url":"https://pinchtab.com"}'
 ```
 
 **Response:**
 ```json
 {
   "id": "tab_19949f62",
-  "url": "https://example.com",
+  "url": "https://pinchtab.com",
   "title": "Example Domain"
 }
 ```
@@ -71,7 +71,7 @@ Retrieve page snapshot using the tab ID:
 
 ```bash
 TAB=$(curl -s -X POST http://localhost:9867/instances/inst_a365262a/tabs/open \
-  -d '{"url":"https://example.com"}' | jq -r '.id')
+  -d '{"url":"https://pinchtab.com"}' | jq -r '.id')
 
 curl http://localhost:9867/tabs/$TAB/snapshot
 ```
@@ -104,11 +104,11 @@ Create 5 headless instances for concurrent scraping:
 #!/bin/bash
 
 URLS=(
-  "https://example.com/page1"
-  "https://example.com/page2"
-  "https://example.com/page3"
-  "https://example.com/page4"
-  "https://example.com/page5"
+  "https://pinchtab.com/page1"
+  "https://pinchtab.com/page2"
+  "https://pinchtab.com/page3"
+  "https://pinchtab.com/page4"
+  "https://pinchtab.com/page5"
 )
 
 INSTANCES=()
@@ -255,7 +255,7 @@ for TASK in "${TASKS[@]}"; do
   # Send task to instance via orchestrator proxy
   curl -s -X POST "http://localhost:9867/instances/$ID/tabs/open" \
     -H "Content-Type: application/json" \
-    -d "{\"url\":\"https://api.example.com?task=$TASK\"}" > /dev/null &
+    -d "{\"url\":\"https://api.pinchtab.com?task=$TASK\"}" > /dev/null &
 
   # Keep 10 requests in flight at a time
   if (( (INSTANCE_INDEX + 1) % 10 == 0 )); then
@@ -408,7 +408,7 @@ done
 
 # Now safe to use
 curl -X POST http://localhost:9867/instances/$INST/tabs/open \
-  -d '{"url":"https://example.com"}'
+  -d '{"url":"https://pinchtab.com"}'
 ```
 
 ### Instance State
@@ -556,7 +556,7 @@ done
 
 # Now safe to navigate
 curl -X POST http://localhost:9867/instances/$INST/tabs/open \
-  -d '{"url":"https://example.com"}'
+  -d '{"url":"https://pinchtab.com"}'
 ```
 
 Chrome lazy-initializes on first health check (~8-20 seconds).
@@ -599,11 +599,11 @@ Frees ports and RAM for new instances.
 ```bash
 # DO: Use orchestrator proxy (recommended)
 curl -X POST http://localhost:9867/instances/$INST/tabs/open \
-  -d '{"url":"https://example.com"}'
+  -d '{"url":"https://pinchtab.com"}'
 
 # AVOID: Direct port access (less consistent)
 curl -X POST http://localhost:$PORT/tabs/open \
-  -d '{"url":"https://example.com"}'
+  -d '{"url":"https://pinchtab.com"}'
 ```
 
 Orchestrator proxy ensures consistent routing and better monitoring.
@@ -764,7 +764,7 @@ curl -X POST http://localhost:9867/instances/$OLD_INST/stop
 # Instance IDs are stable, but ports change on restart
 # Always use orchestrator proxy:
 curl http://localhost:9867/instances/$INST/tabs/open \
-  -d '{"url":"https://example.com"}'
+  -d '{"url":"https://pinchtab.com"}'
 
 # Don't rely on cached port numbers
 PORT=$(curl http://localhost:9867/instances/$INST | jq -r '.port')

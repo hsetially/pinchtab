@@ -9,7 +9,7 @@ PinchTab is a **standalone HTTP server** that gives you direct control over a Ch
 **CLI example:**
 ```bash
 # Navigate
-pinchtab nav https://example.com
+pinchtab nav https://pinchtab.com
 
 # Get interactive elements
 pinchtab snap -i -c
@@ -22,7 +22,7 @@ pinchtab click e5
 ```bash
 # 1. Navigate to URL (returns tabId)
 TAB=$(curl -s -X POST http://localhost:9867/tab \
-  -d '{"action":"new","url":"https://example.com"}' | jq -r '.tabId')
+  -d '{"action":"new","url":"https://pinchtab.com"}' | jq -r '.tabId')
 
 # 2. Get page structure
 curl -s "http://localhost:9867/snapshot?tabId=$TAB&filter=interactive" | jq

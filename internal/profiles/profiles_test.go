@@ -103,7 +103,7 @@ func TestProfileManagerListReadsAccountFromPreferences(t *testing.T) {
 	}
 
 	prefsPath := filepath.Join(dir, profileID("acc-pref"), "Default", "Preferences")
-	prefs := `{"account_info":[{"email":"alice@example.com","full_name":"Alice"}]}`
+	prefs := `{"account_info":[{"email":"alice@pinchtab.com","full_name":"Alice"}]}`
 	if err := os.WriteFile(prefsPath, []byte(prefs), 0644); err != nil {
 		t.Fatal(err)
 	}
@@ -115,8 +115,8 @@ func TestProfileManagerListReadsAccountFromPreferences(t *testing.T) {
 	if len(profiles) != 1 {
 		t.Fatalf("expected 1 profile, got %d", len(profiles))
 	}
-	if profiles[0].AccountEmail != "alice@example.com" {
-		t.Fatalf("expected account email alice@example.com, got %q", profiles[0].AccountEmail)
+	if profiles[0].AccountEmail != "alice@pinchtab.com" {
+		t.Fatalf("expected account email alice@pinchtab.com, got %q", profiles[0].AccountEmail)
 	}
 	if profiles[0].AccountName != "Alice" {
 		t.Fatalf("expected account name Alice, got %q", profiles[0].AccountName)
@@ -134,7 +134,7 @@ func TestProfileManagerListReadsLocalStateIdentity(t *testing.T) {
 	}
 
 	localStatePath := filepath.Join(dir, profileID("acc-local"), "Local State")
-	localState := `{"profile":{"info_cache":{"Default":{"name":"Work","user_name":"bob@example.com","gaia_name":"Bob","gaia_id":"123"}}}}`
+	localState := `{"profile":{"info_cache":{"Default":{"name":"Work","user_name":"bob@pinchtab.com","gaia_name":"Bob","gaia_id":"123"}}}}`
 	if err := os.WriteFile(localStatePath, []byte(localState), 0644); err != nil {
 		t.Fatal(err)
 	}
@@ -149,8 +149,8 @@ func TestProfileManagerListReadsLocalStateIdentity(t *testing.T) {
 	if profiles[0].ChromeProfileName != "Work" {
 		t.Fatalf("expected chrome profile name Work, got %q", profiles[0].ChromeProfileName)
 	}
-	if profiles[0].AccountEmail != "bob@example.com" {
-		t.Fatalf("expected account email bob@example.com, got %q", profiles[0].AccountEmail)
+	if profiles[0].AccountEmail != "bob@pinchtab.com" {
+		t.Fatalf("expected account email bob@pinchtab.com, got %q", profiles[0].AccountEmail)
 	}
 	if profiles[0].AccountName != "Bob" {
 		t.Fatalf("expected account name Bob, got %q", profiles[0].AccountName)
@@ -220,7 +220,7 @@ func TestActionTracker(t *testing.T) {
 			Timestamp:  time.Now().Add(time.Duration(i) * time.Second),
 			Method:     "GET",
 			Endpoint:   "/snapshot",
-			URL:        "https://example.com",
+			URL:        "https://pinchtab.com",
 			DurationMs: 100,
 			Status:     200,
 		})

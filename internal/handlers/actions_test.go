@@ -187,7 +187,7 @@ func TestHandleSetCookies_EmptyURL(t *testing.T) {
 func TestHandleSetCookies_EmptyCookies(t *testing.T) {
 	h := New(&mockBridge{}, &config.RuntimeConfig{}, nil, nil, nil)
 
-	body := `{"url": "https://example.com", "cookies": []}`
+	body := `{"url": "https://pinchtab.com", "cookies": []}`
 	req := httptest.NewRequest("POST", "/cookies", bytes.NewReader([]byte(body)))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()

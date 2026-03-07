@@ -10,7 +10,7 @@ import (
 // M1: Get metrics endpoint returns aggregated memory across instances
 func TestMetrics_Basic(t *testing.T) {
 	// Navigate to a page first to ensure we have a tab with content
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	defer closeCurrentTab(t)
 
 	code, body := httpGet(t, "/instances/metrics")
@@ -40,7 +40,7 @@ func TestMetrics_Basic(t *testing.T) {
 
 // M2: Per-tab metrics (proxied through orchestrator)
 func TestMetrics_PerTab(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	defer closeCurrentTab(t)
 
 	code, body := httpGet(t, "/tabs/"+currentTabID+"/metrics")
@@ -71,7 +71,7 @@ func TestMetrics_InvalidTab(t *testing.T) {
 
 // M4: Metrics endpoint returns valid data
 func TestMetrics_ValidResponse(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	defer closeCurrentTab(t)
 
 	code, body := httpGet(t, "/tabs/"+currentTabID+"/metrics")

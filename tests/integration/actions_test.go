@@ -8,12 +8,11 @@ import (
 	"testing"
 )
 
-// A1: Click by ref — navigate to example.com, find the "More information..." link, click it
+// A1: Click by ref — navigate to example page, find the "More information..." link, click it
 func TestAction_Click(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	defer closeCurrentTab(t)
 
-	// Get snapshot to find a clickable ref
 	_, snapBody := httpGet(t, "/snapshot?filter=interactive&format=text&tabId="+currentTabID)
 	s := string(snapBody)
 
@@ -36,7 +35,7 @@ func TestAction_Click(t *testing.T) {
 // A1b: Click actually triggers navigation (verifies fix for issue #80)
 // This test ensures clicks dispatch at the correct element position, not (0,0)
 func TestAction_Click_TriggersNavigation(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	defer closeCurrentTab(t)
 	t.Logf("current tab: %s", currentTabID)
 
@@ -54,7 +53,7 @@ func TestAction_Click_TriggersNavigation(t *testing.T) {
 		t.Fatalf("failed to parse snapshot: %v", err)
 	}
 
-	// Find any link (example.com has "More information..." link)
+	// Find any link (pinchtab.com has "More information..." link)
 	var linkRef string
 	for _, n := range snapResp.Nodes {
 		if n.Role == "link" {
@@ -79,20 +78,20 @@ func TestAction_Click_TriggersNavigation(t *testing.T) {
 	}
 
 	// Verify navigation happened by checking the page content changed
-	// The "More information" link on example.com goes to iana.org
+	// The "More information" link on pinchtab.com goes to iana.org
 	_, textBody := httpGet(t, "/text?tabId="+currentTabID)
 	text := string(textBody)
 
-	// After clicking, we should NOT be on example.com anymore
+	// After clicking, we should NOT be on pinchtab.com anymore
 	if strings.Contains(text, "Example Domain") && !strings.Contains(text, "IANA") {
-		t.Errorf("click did not trigger navigation - still on example.com (bug #80: click at wrong position)")
+		t.Errorf("click did not trigger navigation - still on pinchtab.com (bug #80: click at wrong position)")
 	}
 	t.Logf("navigation verified: page content changed after click")
 }
 
 // A4: Press key
 func TestAction_Press(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	defer closeCurrentTab(t)
 
 	code, _ := httpPost(t, "/action", map[string]any{
@@ -123,7 +122,7 @@ func TestAction_MissingKind(t *testing.T) {
 
 // A11: Ref not found
 func TestAction_RefNotFound(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	defer closeCurrentTab(t)
 
 	code, _ := httpPost(t, "/action", map[string]any{
@@ -139,7 +138,7 @@ func TestAction_RefNotFound(t *testing.T) {
 
 // A12: CSS selector click
 func TestAction_CSSSelector(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	defer closeCurrentTab(t)
 
 	code, _ := httpPost(t, "/action", map[string]any{
@@ -181,7 +180,7 @@ func findRef(snapshot string, role string) string {
 // A2: Type by ref — need an input element
 func TestAction_Type(t *testing.T) {
 	// Navigate to httpbin form
-	navigate(t, "https://httpbin.org/forms/post")
+	navigate(t, formsPageURL(t))
 	defer closeCurrentTab(t)
 
 	_, snapBody := httpGet(t, "/snapshot?filter=interactive&format=text&tabId="+currentTabID)
@@ -206,7 +205,7 @@ func TestAction_Type(t *testing.T) {
 
 // A3: Fill by ref
 func TestAction_Fill(t *testing.T) {
-	navigate(t, "https://httpbin.org/forms/post")
+	navigate(t, formsPageURL(t))
 	defer closeCurrentTab(t)
 
 	_, snapBody := httpGet(t, "/snapshot?filter=interactive&format=text&tabId="+currentTabID)
@@ -231,7 +230,7 @@ func TestAction_Fill(t *testing.T) {
 
 // A5: Focus
 func TestAction_Focus(t *testing.T) {
-	navigate(t, "https://httpbin.org/forms/post")
+	navigate(t, formsPageURL(t))
 	defer closeCurrentTab(t)
 
 	_, snapBody := httpGet(t, "/snapshot?filter=interactive&format=text&tabId="+currentTabID)
@@ -252,7 +251,7 @@ func TestAction_Focus(t *testing.T) {
 
 // A8: Scroll
 func TestAction_Scroll(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	defer closeCurrentTab(t)
 
 	code, _ := httpPost(t, "/action", map[string]any{
@@ -267,7 +266,7 @@ func TestAction_Scroll(t *testing.T) {
 
 // Batch actions (A14)
 func TestAction_Batch(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 	payload := map[string]any{
 		"tabId": currentTabID,
 		"actions": []map[string]any{
@@ -293,7 +292,7 @@ func TestAction_BatchEmpty(t *testing.T) {
 
 // A6: Hover
 func TestAction_Hover(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 
 	// Get snapshot to find a link ref
 	_, snapBody := httpGet(t, "/snapshot?filter=interactive&format=text&tabId="+currentTabID)
@@ -319,7 +318,7 @@ func TestAction_Hover(t *testing.T) {
 
 // A7: Select
 func TestAction_Select(t *testing.T) {
-	navigate(t, "https://httpbin.org/forms/post")
+	navigate(t, formsPageURL(t))
 	defer closeCurrentTab(t)
 
 	// Get snapshot to find a select element
@@ -345,7 +344,7 @@ func TestAction_Select(t *testing.T) {
 
 // A13: No tab
 func TestAction_NoTab(t *testing.T) {
-	navigate(t, "https://example.com")
+	navigate(t, examplePageURL(t))
 
 	code, _ := httpPost(t, "/action", map[string]string{
 		"kind":  "click",
@@ -359,7 +358,7 @@ func TestAction_NoTab(t *testing.T) {
 }
 
 func TestAction_Fill_ActuallySetsValue(t *testing.T) {
-	navigate(t, "https://httpbin.org/forms/post")
+	navigate(t, formsPageURL(t))
 	defer closeCurrentTab(t)
 
 	_, snapBody := httpGet(t, "/snapshot?filter=interactive&format=text&tabId="+currentTabID)

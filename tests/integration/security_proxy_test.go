@@ -39,7 +39,7 @@ func TestProxy(t *testing.T) {
 
 	t.Run("LocalhostOnly", func(t *testing.T) {
 		// Verify instance can be accessed via proxy (SSRF prevention)
-		code, _, _ := navigateInstance(t, instID, "https://example.com")
+		code, _, _ := navigateInstance(t, instID, examplePageURL(t))
 		if code != 200 {
 			t.Errorf("expected 200 for valid localhost proxy, got %d", code)
 		}
@@ -47,7 +47,7 @@ func TestProxy(t *testing.T) {
 
 	t.Run("URLValidation", func(t *testing.T) {
 		// Verify URL construction is safe with query params
-		code, respBody, _ := navigateInstance(t, instID, "https://example.com/path?query=value")
+		code, respBody, _ := navigateInstance(t, instID, fixtureURL(t, "/path?query=value"))
 		if code != 200 {
 			t.Logf("navigate with query params got %d: %s", code, string(respBody))
 		}
@@ -55,7 +55,7 @@ func TestProxy(t *testing.T) {
 
 	t.Run("SchemeValidation", func(t *testing.T) {
 		// Verify proxy uses http scheme for localhost
-		code, respBody, _ := navigateInstance(t, instID, "https://example.com")
+		code, respBody, _ := navigateInstance(t, instID, examplePageURL(t))
 		if code != 200 {
 			t.Errorf("navigate failed (scheme validation): %d: %s", code, string(respBody))
 		}
@@ -98,12 +98,12 @@ func TestProxy_InstanceIsolation(t *testing.T) {
 	waitForInstanceReady(t, instIDs[0])
 	waitForInstanceReady(t, instIDs[1])
 
-	code1, body1, _ := navigateInstance(t, instIDs[0], "https://example.com/page1")
+	code1, body1, _ := navigateInstance(t, instIDs[0], fixtureURL(t, "/page1"))
 	if code1 != 200 {
 		t.Errorf("navigate in inst1 failed: %d: %s", code1, string(body1))
 	}
 
-	code2, body2, _ := navigateInstance(t, instIDs[1], "https://example.com/page2")
+	code2, body2, _ := navigateInstance(t, instIDs[1], fixtureURL(t, "/page2"))
 	if code2 != 200 {
 		t.Errorf("navigate in inst2 failed: %d: %s", code2, string(body2))
 	}

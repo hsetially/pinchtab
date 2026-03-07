@@ -17,12 +17,15 @@ var (
 )
 
 func TestMain(m *testing.M) {
+	startFixtureSite()
+
 	cfg := testutil.DefaultConfig()
 
 	var err error
 	server, err = testutil.StartServer(cfg)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to start server: %v\n", err)
+		stopFixtureSite()
 		os.Exit(1)
 	}
 
@@ -32,11 +35,13 @@ func TestMain(m *testing.M) {
 	if _, err := testutil.LaunchInstance(server.URL); err != nil {
 		fmt.Fprintf(os.Stderr, "failed to launch test instance: %v\n", err)
 		server.Stop()
+		stopFixtureSite()
 		os.Exit(1)
 	}
 
 	code := m.Run()
 	server.Stop()
+	stopFixtureSite()
 	os.Exit(code)
 }
 

@@ -6,10 +6,10 @@ Pinchtab stores configuration, state, and browser profiles on your local filesys
 
 | File/Directory | Purpose | Configurable Via |
 |----------------|---------|------------------|
-| `chrome-profile/` | Chrome browser profile (cookies, cache, localStorage, etc.) | `BRIDGE_PROFILE` env var or `profileDir` in config |
-| `config.json` | Runtime configuration (port, token, headless mode, etc.) | `BRIDGE_CONFIG` env var |
+| `profiles/<name>/` | Chrome browser profile (cookies, cache, localStorage, etc.) | `profiles.baseDir` + `profiles.defaultProfile` in config |
+| `config.json` | Runtime configuration (port, token, headless mode, etc.) | `PINCHTAB_CONFIG` env var |
 | `action_logs.json` | Profile action history and analytics | *(not currently configurable)* |
-| `*.state.json` | Bridge state files (orchestrator state, etc.) | `BRIDGE_STATE_DIR` env var or `stateDir` in config |
+| `*.state.json` | Bridge state files (orchestrator state, etc.) | `server.stateDir` in config |
 
 ### Chrome Profile Directory
 
@@ -28,11 +28,18 @@ The largest and most important directory. Contains:
 `config.json` stores runtime settings:
 ```json
 {
-  "port": "9867",
-  "token": "your-secret-token",
-  "headless": true,
-  "stateDir": "/custom/path/state",
-  "profileDir": "/custom/path/chrome-profile"
+  "server": {
+    "port": "9867",
+    "token": "your-secret-token",
+    "stateDir": "/custom/path/state"
+  },
+  "instanceDefaults": {
+    "mode": "headless"
+  },
+  "profiles": {
+    "baseDir": "/custom/path/profiles",
+    "defaultProfile": "default"
+  }
 }
 ```
 
@@ -68,7 +75,8 @@ Pinchtab now uses **OS-native application data directories**:
 Inside that directory:
 ```
 pinchtab/
-├── chrome-profile/         # Browser profile
+├── profiles/               # Browser profiles
+│   └── default/
 ├── config.json             # Configuration
 ├── action_logs.json        # Action history
 └── *.state.json            # Bridge state files
@@ -96,19 +104,11 @@ Previously, everything lived in `~/.pinchtab/`:
 
 ### Via Environment Variables
 
-Override defaults before starting pinchtab:
+Only `PINCHTAB_CONFIG` remains for storage-related path selection:
 
 ```bash
-# Custom profile directory
-export BRIDGE_PROFILE=/mnt/data/my-chrome-profile
-pinchtab
-
-# Custom state directory
-export BRIDGE_STATE_DIR=/var/lib/pinchtab/state
-pinchtab
-
 # Custom config file location
-export BRIDGE_CONFIG=/etc/pinchtab/config.json
+export PINCHTAB_CONFIG=/etc/pinchtab/config.json
 pinchtab
 ```
 
@@ -117,12 +117,17 @@ pinchtab
 Set custom paths in `config.json`:
 ```json
 {
-  "profileDir": "/mnt/data/my-chrome-profile",
-  "stateDir": "/var/lib/pinchtab/state"
+  "server": {
+    "stateDir": "/var/lib/pinchtab/state"
+  },
+  "profiles": {
+    "baseDir": "/mnt/data/profiles",
+    "defaultProfile": "default"
+  }
 }
 ```
 
-**Priority order:** Environment variables take precedence over config file values.
+**Priority order:** `PINCHTAB_CONFIG` chooses which config file to load. Storage paths inside that file control the actual directories.
 
 ## Migration from Legacy Location
 
@@ -161,13 +166,18 @@ rmdir ~/.pinchtab
 
 ### Option 3: Stay on Legacy Location
 
-Set `BRIDGE_PROFILE` and `BRIDGE_STATE_DIR` to point to `~/.pinchtab/`:
-```bash
-export BRIDGE_STATE_DIR=~/.pinchtab
-export BRIDGE_PROFILE=~/.pinchtab/chrome-profile
+Set your config file to point to the legacy location:
+```json
+{
+  "server": {
+    "stateDir": "~/.pinchtab"
+  },
+  "profiles": {
+    "baseDir": "~/.pinchtab/profiles",
+    "defaultProfile": "default"
+  }
+}
 ```
-
-Add these to your shell profile (`.bashrc`, `.zshrc`, etc.) to make them permanent.
 
 ## Container Deployments
 
@@ -176,8 +186,7 @@ In Docker/containerized environments:
 1. **Mount a volume** for persistence:
    ```bash
    docker run -v /host/pinchtab-data:/data \
-              -e BRIDGE_STATE_DIR=/data \
-              -e BRIDGE_PROFILE=/data/chrome-profile \
+              -e PINCHTAB_CONFIG=/data/config.json \
               pinchtab/pinchtab
    ```
 
@@ -186,7 +195,7 @@ In Docker/containerized environments:
    ENV HOME=/app
    ```
 
-3. **Or use explicit paths** via environment variables (recommended for containers).
+3. **Store explicit paths in the mounted config file**.
 
 ## Security Considerations
 
@@ -197,7 +206,7 @@ In Docker/containerized environments:
 - **History & Cache** — Reveals browsing activity
 
 **Recommendations:**
-- Set restrictive permissions: `chmod 700 ~/.config/pinchtab/chrome-profile`
+- Set restrictive permissions on profile directories, for example `chmod 700 ~/.config/pinchtab/profiles/default`
 - Don't commit profile directories to version control
 - Use separate profiles for different security contexts
 - Consider encrypting the filesystem or using encrypted volumes
@@ -246,10 +255,7 @@ Failed to create SingletonLock: Permission denied (13)
 
 **Cause:** Using an old pinchtab version that stores profiles in `~/.pinchtab` (blocked by Snap AppArmor).
 
-**Solution:** Upgrade to the latest version (uses `~/.config/pinchtab` by default) or set:
-```bash
-export BRIDGE_PROFILE=~/.local/share/pinchtab/chrome-profile
-```
+**Solution:** Upgrade to the latest version (uses `~/.config/pinchtab` by default) or move profile storage under your configured `profiles.baseDir`.
 
 See [Issue #98](https://github.com/pinchtab/pinchtab/issues/98) for details.
 
@@ -262,9 +268,9 @@ See [Issue #98](https://github.com/pinchtab/pinchtab/issues/98) for details.
 cp ~/.pinchtab/config.json ~/.config/pinchtab/config.json  # Linux
 ```
 
-Or use `BRIDGE_CONFIG`:
+Or use `PINCHTAB_CONFIG`:
 ```bash
-export BRIDGE_CONFIG=~/.pinchtab/config.json
+export PINCHTAB_CONFIG=~/.pinchtab/config.json
 ```
 
 ### Profile directory size is huge
@@ -273,14 +279,11 @@ export BRIDGE_CONFIG=~/.pinchtab/config.json
 
 **Solution:** Clear the cache periodically:
 ```bash
-rm -rf ~/.config/pinchtab/chrome-profile/Default/Cache
-rm -rf ~/.config/pinchtab/chrome-profile/Default/Code\ Cache
+rm -rf ~/.config/pinchtab/profiles/default/Default/Cache
+rm -rf ~/.config/pinchtab/profiles/default/Default/Code\ Cache
 ```
 
-Or start pinchtab with a fresh profile for temporary sessions:
-```bash
-BRIDGE_PROFILE=/tmp/pinchtab-temp-profile pinchtab
-```
+Or point `profiles.baseDir` at a temporary directory for short-lived sessions.
 
 ## Further Reading
 
