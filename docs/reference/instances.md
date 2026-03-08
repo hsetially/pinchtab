@@ -55,7 +55,7 @@ pinchtab instance start --profileId 278be873adeb --mode headed --port 9999
 Notes:
 
 - `POST /instances/start` is the primary endpoint.
-- `pinchtab instance launch` is a CLI alias for `pinchtab instance start`.
+
 - if `profileId` is omitted, PinchTab creates an auto-generated temporary profile such as `instance-...`
 - if `port` is omitted, PinchTab allocates one from the configured instance port range
 

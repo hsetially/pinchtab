@@ -123,15 +123,6 @@ pinchtab click e1
 - External Chrome attach
 - Optional JavaScript evaluation
 
-## Expert guides
-
-When you move beyond the default server-first workflow:
-
-- [Bridge](guides/expert-bridge-mode.md)
-- [Attach](guides/expert-attach.md)
-- [Multi-Instance Strategies](guides/expert-strategies.md)
-- [Architecture](architecture/pinchtab-architecture.md)
-
 ## Support
 
 - [GitHub Issues](https://github.com/pinchtab/pinchtab/issues)

@@ -223,7 +223,7 @@ The default path remains:
 pinchtab
 ```
 
-then managed instance launch via:
+then managed instance start via:
 
 ```bash
 curl -X POST http://localhost:9867/instances/start \
