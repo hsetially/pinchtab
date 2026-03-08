@@ -210,6 +210,8 @@ type ActionRequest struct {
 	NodeID   int64  `json:"nodeId"`
 	ScrollX  int    `json:"scrollX"`
 	ScrollY  int    `json:"scrollY"`
+	DragX    int    `json:"dragX"`
+	DragY    int    `json:"dragY"`
 	WaitNav  bool   `json:"waitNav"`
 	Fast     bool   `json:"fast"`
 	Owner    string `json:"owner"`

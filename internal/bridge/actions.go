@@ -19,6 +19,7 @@ const (
 	ActionHover      = "hover"
 	ActionSelect     = "select"
 	ActionScroll     = "scroll"
+	ActionDrag       = "drag"
 	ActionHumanClick = "humanClick"
 	ActionHumanType  = "humanType"
 )
@@ -126,6 +127,35 @@ func (b *Bridge) InitActionRegistry() {
 			}
 			return map[string]any{"scrolled": true, "y": 800},
 				chromedp.Run(ctx, chromedp.Evaluate("window.scrollBy(0, 800)", nil))
+		},
+		ActionDrag: func(ctx context.Context, req ActionRequest) (map[string]any, error) {
+			if req.DragX == 0 && req.DragY == 0 {
+				return nil, fmt.Errorf("dragX or dragY required for drag")
+			}
+			if req.NodeID > 0 {
+				err := DragByNodeID(ctx, req.NodeID, req.DragX, req.DragY)
+				if err != nil {
+					return nil, err
+				}
+				return map[string]any{"dragged": true, "dragX": req.DragX, "dragY": req.DragY}, nil
+			}
+			if req.Selector != "" {
+				var nodes []*cdp.Node
+				if err := chromedp.Run(ctx,
+					chromedp.Nodes(req.Selector, &nodes, chromedp.ByQuery),
+				); err != nil {
+					return nil, err
+				}
+				if len(nodes) == 0 {
+					return nil, fmt.Errorf("element not found: %s", req.Selector)
+				}
+				err := DragByNodeID(ctx, int64(nodes[0].BackendNodeID), req.DragX, req.DragY)
+				if err != nil {
+					return nil, err
+				}
+				return map[string]any{"dragged": true, "dragX": req.DragX, "dragY": req.DragY}, nil
+			}
+			return nil, fmt.Errorf("need selector, ref, or nodeId")
 		},
 		ActionHumanClick: func(ctx context.Context, req ActionRequest) (map[string]any, error) {
 			if req.NodeID > 0 {
