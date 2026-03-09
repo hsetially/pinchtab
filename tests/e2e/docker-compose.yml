@@ -5,16 +5,12 @@ services:
       dockerfile: tests/e2e/Dockerfile.pinchtab
     ports:
       - "9999:9999"
-    environment:
-      - PINCHTAB_PORT=9999
-      - PINCHTAB_BIND=0.0.0.0
-      - PINCHTAB_HEADLESS=true
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9999/health"]
-      interval: 2s
-      timeout: 5s
-      retries: 10
-      start_period: 10s
+      test: ["CMD", "curl", "-sf", "http://localhost:9999/health"]
+      interval: 3s
+      timeout: 10s
+      retries: 20
+      start_period: 15s
 
   fixtures:
     image: nginx:alpine

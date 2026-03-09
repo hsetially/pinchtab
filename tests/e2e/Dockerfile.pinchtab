@@ -1,35 +1,46 @@
 # Build stage
-FROM golang:1.26-bookworm AS builder
-
-WORKDIR /app
+FROM golang:1.26-alpine AS builder
+RUN apk add --no-cache git
+WORKDIR /build
 COPY go.mod go.sum ./
 RUN go mod download
-
 COPY . .
-RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o pinchtab ./cmd/pinchtab
+RUN go build -ldflags="-s -w" -o pinchtab ./cmd/pinchtab
 
 # Runtime stage
-FROM debian:bookworm-slim
+FROM alpine:latest
 
-# Install Chrome dependencies and Chrome
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Install Chromium and dependencies (same as main Dockerfile)
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
     ca-certificates \
+    ttf-freefont \
     curl \
-    gnupg \
-    && curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg \
-    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
-    && apt-get update && apt-get install -y --no-install-recommends \
-    google-chrome-stable \
-    && rm -rf /var/lib/apt/lists/*
+    dumb-init
 
-# Copy binary
-COPY --from=builder /app/pinchtab /usr/local/bin/pinchtab
+# Create non-root user and state directory
+RUN adduser -D -g '' pinchtab && \
+    mkdir -p /data && \
+    chown pinchtab:pinchtab /data
 
-# Create non-root user
-RUN useradd -m -s /bin/bash pinchtab
+# Copy binary from builder
+COPY --from=builder /build/pinchtab /usr/local/bin/pinchtab
+
+# Switch to non-root user
 USER pinchtab
-WORKDIR /home/pinchtab
+WORKDIR /data
+
+# Environment variables for headless Chrome
+ENV PINCHTAB_BIND=0.0.0.0 \
+    PINCHTAB_PORT=9999 \
+    PINCHTAB_HEADLESS=true \
+    PINCHTAB_STATE_DIR=/data \
+    CHROME_BIN=/usr/bin/chromium-browser
 
 EXPOSE 9999
 
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD ["pinchtab", "server"]
