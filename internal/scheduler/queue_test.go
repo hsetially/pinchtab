@@ -22,6 +22,7 @@ func TestQueueEnqueueDequeue(t *testing.T) {
 	got := q.Dequeue(10, 20)
 	if got == nil {
 		t.Fatal("expected a task")
+		return
 	}
 	if got.ID != "t2" {
 		t.Errorf("expected t2 (priority 1), got %s (priority %d)", got.ID, got.Priority)
@@ -85,12 +86,14 @@ func TestQueueFairness(t *testing.T) {
 	got1 := q.Dequeue(10, 20)
 	if got1 == nil {
 		t.Fatal("expected a task")
+		return
 	}
 
 	// Now one agent has 1 inflight. The agent with 0 should be preferred.
 	got2 := q.Dequeue(10, 20)
 	if got2 == nil {
 		t.Fatal("expected a task")
+		return
 	}
 
 	// The two dequeued tasks should be from different agents (fairness).
