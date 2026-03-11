@@ -34,6 +34,82 @@ This does not automatically mean the service is exposed beyond your machine. Hos
 
 Treat the Docker runtime bind and the host-published address as separate layers. If you expose PinchTab beyond localhost, keep an auth token set and put it behind TLS or a trusted reverse proxy.
 
+## Health Check and Readiness
+
+PinchTab has a two-stage readiness model in Docker:
+
+1. **Dashboard ready**: `/health` returns HTTP 200 — the server process is up
+2. **Browser ready**: `/health` response has `defaultInstance.status == "running"` — Chrome is ready
+
+### Why Two Stages?
+
+With the `always-on` strategy (default), PinchTab launches a managed Chrome instance at startup. The dashboard becomes healthy immediately, but Chrome takes a few seconds to initialize. If your application hits `/navigate` or `/snapshot` before Chrome is ready, it gets HTTP 503.
+
+### Docker Compose Healthcheck
+
+The standard healthcheck marks the container as "healthy" when the dashboard responds:
+
+```yaml
+healthcheck:
+  test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:9867/health"]
+  interval: 3s
+  timeout: 10s
+  retries: 20
+  start_period: 15s
+```
+
+This is correct for container orchestration — Docker knows the process is alive and the service is reachable.
+
+### Application-Level Readiness
+
+If your application needs Chrome to be ready before making requests, poll `/health` and check for `defaultInstance.status`:
+
+```bash
+# Wait for browser to be ready
+until curl -sf http://localhost:9867/health | jq -e '.defaultInstance.status == "running"' > /dev/null 2>&1; do
+  sleep 1
+done
+echo "Browser ready"
+```
+
+Or in code:
+
+```javascript
+async function waitForBrowser(baseUrl, timeoutMs = 60000) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    try {
+      const res = await fetch(`${baseUrl}/health`);
+      const data = await res.json();
+      if (data.defaultInstance?.status === "running") return;
+    } catch {}
+    await new Promise(r => setTimeout(r, 1000));
+  }
+  throw new Error("Browser not ready within timeout");
+}
+```
+
+### Full Health Response (Server Mode)
+
+```json
+{
+  "status": "ok",
+  "mode": "dashboard",
+  "version": "0.8.0",
+  "uptime": 12345,
+  "profiles": 1,
+  "instances": 1,
+  "defaultInstance": {
+    "id": "inst_abc12345",
+    "status": "running"
+  },
+  "agents": 0,
+  "restartRequired": false
+}
+```
+
+See [Health Reference](../reference/health.md) for full details.
+
 ## Supplying Your Own `config.json`
 
 If you want to manage the config file yourself, mount it and point `PINCHTAB_CONFIG` at it:
