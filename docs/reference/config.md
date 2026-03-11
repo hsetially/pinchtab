@@ -185,6 +185,16 @@ Current nested config shape:
     "navigateSec": 60,
     "shutdownSec": 10,
     "waitNavMs": 1000
+  },
+  "scheduler": {
+    "enabled": false,
+    "strategy": "fair-fifo",
+    "maxQueueSize": 1000,
+    "maxPerAgent": 100,
+    "maxInflight": 20,
+    "maxPerAgentInflight": 10,
+    "resultTTLSec": 300,
+    "workerCount": 4
   }
 }
 ```
@@ -200,6 +210,7 @@ Current nested config shape:
 | `profiles` | Profile storage defaults |
 | `multiInstance` | Strategy, allocation, instance port range, and restart policy |
 | `timeouts` | Runtime timeouts |
+| `scheduler` | Optional task queue (see [Scheduler](./scheduler.md)) |
 
 ## Common Examples
 
