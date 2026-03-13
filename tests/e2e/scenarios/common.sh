@@ -310,7 +310,17 @@ pinchtab() {
 #        pt_post /path '{"json":"data"}'
 #        pt_post /path -d '{"json":"data"}'  (also works)
 pt() { pinchtab "$@"; }
-pt_get() { pinchtab GET "$1"; echo "$RESULT"; }
+
+# Truncate output for display (avoid flooding logs with base64 blobs)
+_echo_truncated() {
+  if [ ${#RESULT} -gt 1000 ]; then
+    echo "${RESULT:0:200}...[truncated ${#RESULT} chars]"
+  else
+    echo "$RESULT"
+  fi
+}
+
+pt_get() { pinchtab GET "$1"; _echo_truncated; }
 pt_post() {
   local path="$1"
   shift
@@ -319,7 +329,7 @@ pt_post() {
     shift
   fi
   pinchtab POST "$path" -d "$1"
-  echo "$RESULT"
+  _echo_truncated
 }
 
 pt_patch() {
@@ -334,7 +344,7 @@ pt_patch() {
     -d "$body")
   RESULT=$(echo "$response" | head -n -1)
   HTTP_STATUS=$(echo "$response" | tail -n 1)
-  echo "$RESULT"
+  _echo_truncated
 }
 
 pt_delete() {
@@ -346,7 +356,7 @@ pt_delete() {
     "${PINCHTAB_URL}$path")
   RESULT=$(echo "$response" | head -n -1)
   HTTP_STATUS=$(echo "$response" | tail -n 1)
-  echo "$RESULT"
+  _echo_truncated
 }
 
 # POST raw body (for testing malformed JSON)
@@ -362,7 +372,7 @@ pt_post_raw() {
     -d "$body")
   RESULT=$(echo "$response" | head -n -1)
   HTTP_STATUS=$(echo "$response" | tail -n 1)
-  echo "$RESULT"
+  _echo_truncated
 }
 
 # ================================================================

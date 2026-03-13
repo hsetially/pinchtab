@@ -82,6 +82,15 @@ end_test
 # ─────────────────────────────────────────────────────────────────
 start_test "orchestrator: instance tabs"
 
+# Wait for instance to be running (may still be starting)
+for i in $(seq 1 10); do
+  INST_STATUS=$(curl -sf "${PINCHTAB_URL}/instances/${INST_ID}" 2>/dev/null | jq -r '.status // empty' || true)
+  if [ "$INST_STATUS" = "running" ]; then
+    break
+  fi
+  sleep 1
+done
+
 pt_get "/instances/${INST_ID}/tabs"
 assert_ok "instance tabs"
 
@@ -200,12 +209,12 @@ ISO_INST2=$(echo "$RESULT" | jq -r '.id')
 
 sleep 3
 
-# Navigate on each instance
-pt_post "/instances/${ISO_INST1}/proxy/navigate" "{\"url\":\"${FIXTURES_URL}/index.html\"}"
-TAB1=$(echo "$RESULT" | jq -r '.tabId')
+# Open tabs on each instance
+pt_post "/instances/${ISO_INST1}/tabs/open" "{\"url\":\"${FIXTURES_URL}/index.html\"}"
+TAB1=$(echo "$RESULT" | jq -r '.tabId // .id // empty')
 
-pt_post "/instances/${ISO_INST2}/proxy/navigate" "{\"url\":\"${FIXTURES_URL}/form.html\"}"
-TAB2=$(echo "$RESULT" | jq -r '.tabId')
+pt_post "/instances/${ISO_INST2}/tabs/open" "{\"url\":\"${FIXTURES_URL}/form.html\"}"
+TAB2=$(echo "$RESULT" | jq -r '.tabId // .id // empty')
 
 if [ "$TAB1" != "$TAB2" ] || [ -z "$TAB1" ]; then
   echo -e "  ${GREEN}✓${NC} instances have separate tabs"
