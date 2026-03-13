@@ -32,12 +32,12 @@ assert_output_contains 'b' "contains both keys"
 end_test
 
 # ─────────────────────────────────────────────────────────────────
-start_test "pinchtab tabs eval <tabId> <expression>"
+start_test "pinchtab eval --tab <tabId> <expression>"
 
 pt_ok nav "${FIXTURES_URL}/buttons.html"
 TAB_ID=$(echo "$PT_OUT" | jq -r '.tabId')
 
-pt_ok tabs eval "$TAB_ID" "document.title"
+pt_ok eval "document.title" --tab "$TAB_ID"
 assert_output_contains "Button" "evaluates in correct tab"
 
 end_test

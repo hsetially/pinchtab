@@ -43,9 +43,9 @@ end_test
 start_test "pinchtab snap --diff"
 
 pt_ok snap
-assert_exit_ok "first snapshot"
+
 pt_ok snap --diff
-assert_exit_ok "snap diff mode"
+
 
 end_test
 
@@ -53,6 +53,6 @@ end_test
 start_test "pinchtab snap -s 'body'"
 
 pt_ok snap -s "body"
-assert_exit_ok "snap with selector"
+
 
 end_test
