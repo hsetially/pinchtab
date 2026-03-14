@@ -207,7 +207,7 @@ end_test
 # ─────────────────────────────────────────────────────────────────
 start_test "POST /tasks — missing action → 400"
 
-pt_post /tasks -d "{\"agentId\":\"${AGENT}\"}"
+pt_post /tasks -d "{\"agentId\":\"validation-agent-$$\"}"
 assert_http_status "400" "missing action rejected"
 
 end_test
