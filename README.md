@@ -336,17 +336,16 @@ See [chrome-files.md](chrome-files.md) for technical details on how PinchTab man
 
 ## Development
 
-Want to contribute? See [DEVELOPMENT.md](DEVELOPMENT.md) for setup instructions.
+Want to contribute? Start with [CONTRIBUTING.md](CONTRIBUTING.md).
+The full setup and workflow guide lives at [docs/guides/contributing.md](docs/guides/contributing.md).
 
 **Quick start:**
 ```bash
 git clone https://github.com/pinchtab/pinchtab.git
 cd pinchtab
-./doctor.sh                 # Verifies environment, installs hooks/deps
+./dev doctor                # Verifies environment, offers hooks/deps setup
 go build ./cmd/pinchtab     # Build pinchtab binary
 ```
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
 
 ---
 
