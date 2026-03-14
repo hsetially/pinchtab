@@ -542,6 +542,26 @@ func TestCombined_Synonym_Purchase_Checkout(t *testing.T) {
 	}
 }
 
+func TestCombined_Synonym_ProceedToPayment_PlaceOrder(t *testing.T) {
+	sites := buildRealWorldElements()
+	matcher := NewCombinedMatcher(NewHashingEmbedder(128))
+
+	result, err := matcher.Find(context.Background(), "proceed to payment", sites["ecommerce"], FindOptions{
+		Threshold: 0.15,
+		TopK:      5,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("Query='proceed to payment': BestRef=%s Score=%.3f", result.BestRef, result.BestScore)
+	for _, m := range result.Matches {
+		t.Logf("  match: ref=%s score=%.3f role=%s name=%s", m.Ref, m.Score, m.Role, m.Name)
+	}
+	if result.BestRef != "e8" {
+		t.Fatalf("expected 'proceed to payment' to match 'Place Order' (e8), got %s", result.BestRef)
+	}
+}
+
 func TestCombined_Synonym_Dismiss_Close(t *testing.T) {
 	sites := buildRealWorldElements()
 	matcher := NewCombinedMatcher(NewHashingEmbedder(128))

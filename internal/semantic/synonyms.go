@@ -55,7 +55,7 @@ var uiSynonyms = map[string][]string{
 
 	// Shopping & e-commerce
 	"cart":     {"basket", "bag", "shopping cart"},
-	"checkout": {"pay", "purchase", "buy", "place order", "order"},
+	"checkout": {"pay", "payment", "purchase", "buy", "place order", "order", "proceed to payment"},
 	"price":    {"cost", "amount", "total"},
 	"quantity": {"qty", "count", "amount"},
 
