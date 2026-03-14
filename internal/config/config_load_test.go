@@ -68,8 +68,8 @@ func TestLoadConfigDefaults(t *testing.T) {
 	if cfg.TabEvictionPolicy != "close_lru" {
 		t.Errorf("default TabEvictionPolicy = %v, want close_lru", cfg.TabEvictionPolicy)
 	}
-	if cfg.AttachEnabled {
-		t.Errorf("default AttachEnabled = %v, want false", cfg.AttachEnabled)
+	if !cfg.AttachEnabled {
+		t.Errorf("default AttachEnabled = %v, want true", cfg.AttachEnabled)
 	}
 	if len(cfg.AttachAllowSchemes) != 2 || cfg.AttachAllowSchemes[0] != "ws" || cfg.AttachAllowSchemes[1] != "wss" {
 		t.Errorf("default AttachAllowSchemes = %v, want [ws wss]", cfg.AttachAllowSchemes)

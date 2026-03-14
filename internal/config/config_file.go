@@ -25,6 +25,7 @@ func DefaultFileConfig() FileConfig {
 	allowDownload := false
 	allowUpload := false
 	maxRedirects := -1
+	attachEnabled := true
 	return FileConfig{
 		ConfigVersion: CurrentConfigVersion,
 		Server: ServerConfig{
@@ -49,6 +50,7 @@ func DefaultFileConfig() FileConfig {
 			AllowUpload:     &allowUpload,
 			MaxRedirects:    &maxRedirects,
 			Attach: AttachConfig{
+				Enabled:      &attachEnabled,
 				AllowHosts:   []string{"127.0.0.1", "localhost", "::1"},
 				AllowSchemes: []string{"ws", "wss"},
 			},
