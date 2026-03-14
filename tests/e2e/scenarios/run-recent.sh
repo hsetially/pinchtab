@@ -18,12 +18,16 @@ echo ""
 echo "Waiting for instances to become ready..."
 wait_for_instance_ready "${PINCHTAB_URL}"
 wait_for_instance_ready "${PINCHTAB_SECURE_URL}"
+if [ -n "${PINCHTAB_LITE_URL:-}" ]; then
+  wait_for_instance_ready "${PINCHTAB_LITE_URL}"
+fi
 echo ""
 
 # Recent test files — add new scenarios here for fast CI feedback.
 # Move to the full suite (run-all.sh) once stable.
 RECENT_TESTS=(
   "41-extensions.sh"
+  "42-lite-engine.sh"
 )
 
 for name in "${RECENT_TESTS[@]}"; do
