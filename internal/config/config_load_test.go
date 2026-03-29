@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 )
 
 func TestEnvOr(t *testing.T) {
@@ -98,6 +99,18 @@ func TestLoadConfigDefaults(t *testing.T) {
 	}
 	if cfg.Observability.Activity.RetentionDays != 1 {
 		t.Errorf("default Observability.Activity.RetentionDays = %d, want 1", cfg.Observability.Activity.RetentionDays)
+	}
+	if !cfg.Sessions.Dashboard.Persist {
+		t.Errorf("default Sessions.Dashboard.Persist = %v, want true", cfg.Sessions.Dashboard.Persist)
+	}
+	if cfg.Sessions.Dashboard.IdleTimeout != 7*24*time.Hour {
+		t.Errorf("default Sessions.Dashboard.IdleTimeout = %v, want %v", cfg.Sessions.Dashboard.IdleTimeout, 7*24*time.Hour)
+	}
+	if cfg.Sessions.Dashboard.MaxLifetime != 7*24*time.Hour {
+		t.Errorf("default Sessions.Dashboard.MaxLifetime = %v, want %v", cfg.Sessions.Dashboard.MaxLifetime, 7*24*time.Hour)
+	}
+	if cfg.Sessions.Dashboard.RequireElevation {
+		t.Errorf("default Sessions.Dashboard.RequireElevation = %v, want false", cfg.Sessions.Dashboard.RequireElevation)
 	}
 }
 
