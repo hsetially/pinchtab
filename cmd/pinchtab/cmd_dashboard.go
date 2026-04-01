@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"net"
+	"os"
 	"os/exec"
 	"runtime"
+	"strconv"
 	"time"
 
 	"github.com/pinchtab/pinchtab/internal/cli"
@@ -31,7 +33,11 @@ func init() {
 }
 
 func runDashboardCommand(cfgPort, cfgBind, cfgToken string, noOpen bool, portOverride string) {
-	port := resolvePort(cfgPort, portOverride)
+	port, err := resolvePort(cfgPort, portOverride)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+		os.Exit(1)
+	}
 	host := resolveHost(cfgBind)
 	url := fmt.Sprintf("http://%s:%s", host, port)
 
@@ -67,14 +73,22 @@ func runDashboardCommand(cfgPort, cfgBind, cfgToken string, noOpen bool, portOve
 	}
 }
 
-func resolvePort(cfgPort, override string) string {
-	if override != "" {
-		return override
-	}
+func resolvePort(cfgPort, override string) (string, error) {
+	port := "9870"
 	if cfgPort != "" {
-		return cfgPort
+		port = cfgPort
 	}
-	return "9870"
+	if override != "" {
+		port = override
+	}
+	n, err := strconv.Atoi(port)
+	if err != nil {
+		return "", fmt.Errorf("invalid port %q: must be a number", port)
+	}
+	if n < 1 || n > 65535 {
+		return "", fmt.Errorf("invalid port %d: must be between 1 and 65535", n)
+	}
+	return port, nil
 }
 
 func resolveHost(bind string) string {

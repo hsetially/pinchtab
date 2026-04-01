@@ -8,15 +8,33 @@ func TestResolvePort(t *testing.T) {
 		cfgPort  string
 		override string
 		want     string
+		wantErr  bool
 	}{
-		{"default when empty", "", "", "9870"},
-		{"uses config port", "8080", "", "8080"},
-		{"override wins", "8080", "7777", "7777"},
-		{"override wins over empty config", "", "7777", "7777"},
+		{"default when empty", "", "", "9870", false},
+		{"uses config port", "8080", "", "8080", false},
+		{"override wins", "8080", "7777", "7777", false},
+		{"override wins over empty config", "", "7777", "7777", false},
+		{"min valid port", "", "1", "1", false},
+		{"max valid port", "", "65535", "65535", false},
+		{"rejects zero", "", "0", "", true},
+		{"rejects negative", "", "-1", "", true},
+		{"rejects too high", "", "65536", "", true},
+		{"rejects non-numeric", "", "abc", "", true},
+		{"rejects non-numeric config", "notaport", "", "", true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := resolvePort(tt.cfgPort, tt.override)
+			got, err := resolvePort(tt.cfgPort, tt.override)
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("resolvePort(%q, %q) expected error, got %q", tt.cfgPort, tt.override, got)
+				}
+				return
+			}
+			if err != nil {
+				t.Errorf("resolvePort(%q, %q) unexpected error: %v", tt.cfgPort, tt.override, err)
+				return
+			}
 			if got != tt.want {
 				t.Errorf("resolvePort(%q, %q) = %q, want %q", tt.cfgPort, tt.override, got, tt.want)
 			}
