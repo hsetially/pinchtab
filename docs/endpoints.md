@@ -7,10 +7,9 @@ This page lists the live HTTP surface exposed by PinchTab. Some routes are only 
 ```text
 GET  /health
 POST /ensure-chrome
-GET  /help
 GET  /openapi.json
+GET  /help          (alias for /openapi.json)
 GET  /metrics
-GET  /welcome
 POST /shutdown
 GET  /api/events
 ```
