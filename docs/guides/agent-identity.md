@@ -44,6 +44,8 @@ The `X-Agent-Id` header is sent with every request. No server-side setup require
 
 ## Agent Sessions
 
+> **⚠️ Security notice:** Agent sessions are designed for **trusted environments** — local machines, private networks, or setups where all agents are under your control. Do not expose the session management API (`/api/sessions`) to the public internet. Any authenticated caller (bearer token or dashboard cookie) can create, list, rotate, and revoke sessions for any agent. There is no per-agent authorization scoping — treat session management endpoints like admin APIs.
+
 Sessions are the full identity solution. Each session is a revocable, server-managed token tied to a specific agent ID. Sessions provide:
 
 - **Labels** — human-readable names like "research task" or "daily scrape"

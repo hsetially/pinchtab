@@ -49,6 +49,8 @@ In `config.json`:
 - Sessions persisted to `agent-sessions.json` (atomic writes)
 - Each session bound to a specific agentId for activity tracking
 
+> **⚠️ Trusted environment only.** The session management API (`/api/sessions`) has no per-agent authorization scoping. Any caller authenticated with the server bearer token or a valid dashboard cookie can create, list, rotate, and revoke sessions for any agent. Do not expose these endpoints to untrusted networks or the public internet. If you need multi-tenant isolation, run separate PinchTab instances per tenant.
+
 ## CLI Usage
 
 ```bash

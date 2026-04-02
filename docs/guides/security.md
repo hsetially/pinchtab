@@ -285,4 +285,6 @@ For automated agents, use **agent sessions** instead of sharing the server beare
 - Has configurable idle timeout and max lifetime
 - Never exposes the server bearer token to agents
 
+**Important:** Agent sessions are designed for trusted environments. The session management API (`/api/sessions`) has no per-agent authorization — any bearer-authenticated caller can manage all sessions. Do not expose these endpoints to untrusted networks.
+
 See [Reference: Agent Sessions](../reference/sessions.md) for configuration and API details.
