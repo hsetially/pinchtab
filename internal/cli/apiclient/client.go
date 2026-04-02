@@ -128,7 +128,7 @@ func setAuthHeader(req *http.Request, token string) {
 	if token == "" {
 		return
 	}
-	if strings.HasPrefix(token, "pts_") {
+	if strings.HasPrefix(token, "ses_") {
 		req.Header.Set("Authorization", "Session "+token)
 	} else {
 		req.Header.Set("Authorization", "Bearer "+token)

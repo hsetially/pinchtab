@@ -89,7 +89,6 @@ func RunDashboard(cfg *config.RuntimeConfig, version string) {
 	})
 	actStore, err := activity.NewRecorder(activity.Config{
 		Enabled:       cfg.Observability.Activity.Enabled,
-		SessionIdle:   time.Duration(cfg.Observability.Activity.SessionIdleSec) * time.Second,
 		RetentionDays: cfg.Observability.Activity.RetentionDays,
 	}, cfg.ActivityStateDir())
 	if err != nil {

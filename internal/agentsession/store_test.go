@@ -15,16 +15,16 @@ func TestCreateAndAuthenticate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.HasPrefix(id, "pts_") {
-		t.Fatalf("session ID should start with pts_, got %q", id)
+	if !strings.HasPrefix(id, "ses_") {
+		t.Fatalf("session ID should start with ses_, got %q", id)
 	}
-	if !strings.HasPrefix(token, "pts_") {
-		t.Fatalf("token should start with pts_, got %q", token)
+	if !strings.HasPrefix(token, "ses_") {
+		t.Fatalf("token should start with ses_, got %q", token)
 	}
-	if len(token) != 4+48 { // pts_ + 48 hex chars
+	if len(token) != 4+48 { // ses_ + 48 hex chars
 		t.Fatalf("token length should be 52, got %d", len(token))
 	}
-	if len(id) != 4+16 { // pts_ + 16 hex chars
+	if len(id) != 4+16 { // ses_ + 16 hex chars
 		t.Fatalf("session ID length should be 20, got %d", len(id))
 	}
 
@@ -43,7 +43,7 @@ func TestCreateAndAuthenticate(t *testing.T) {
 func TestAuthenticateInvalidToken(t *testing.T) {
 	s := NewStore(Config{Enabled: true})
 	_, _, _ = s.Create("agent-1", "")
-	sess, ok := s.Authenticate("pts_invalidtoken")
+	sess, ok := s.Authenticate("ses_invalidtoken")
 	if ok || sess != nil {
 		t.Fatal("expected failed authentication for invalid token")
 	}
@@ -126,7 +126,7 @@ func TestRevoke(t *testing.T) {
 
 func TestRevokeNotFound(t *testing.T) {
 	s := NewStore(Config{Enabled: true})
-	if s.Revoke("pts_nonexistent") {
+	if s.Revoke("ses_nonexistent") {
 		t.Fatal("expected revoke to return false for non-existent session")
 	}
 }
@@ -253,7 +253,7 @@ func TestAtomicWrite(t *testing.T) {
 		t.Fatalf("expected 1 persisted session, got %d", len(store.Sessions))
 	}
 	// Verify no raw token in persisted data
-	if strings.Contains(string(data), "pts_") && strings.Contains(string(data), `"token"`) {
+	if strings.Contains(string(data), "ses_") && strings.Contains(string(data), `"token"`) {
 		t.Fatal("raw token found in persisted data")
 	}
 }

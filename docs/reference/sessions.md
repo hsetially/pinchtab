@@ -4,8 +4,8 @@ Agent sessions provide durable, revocable authentication for automated agents. I
 
 ## Overview
 
-- **Session token**: `pts_<48 hex chars>` — high-entropy, never stored raw (only SHA-256 hash persisted)
-- **Session ID**: `pts_<16 hex chars>` — public identifier for management
+- **Session token**: `ses_<48 hex chars>` — high-entropy, never stored raw (only SHA-256 hash persisted)
+- **Session ID**: `ses_<16 hex chars>` — public identifier for management
 - **Auth header**: `Authorization: Session <token>`
 - **Env var**: `PINCHTAB_SESSION` — CLI auto-detects and uses session auth
 
@@ -37,7 +37,7 @@ In `config.json`:
 ## Lifecycle
 
 1. **Create** — via dashboard API: `POST /api/agent-sessions`
-2. **Use** — agent sends `Authorization: Session pts_...` with each request
+2. **Use** — agent sends `Authorization: Session ses_...` with each request
 3. **Rotate** — generate a new token, old one invalidated: `POST /api/agent-sessions/{id}/rotate`
 4. **Revoke** — permanently disable: `POST /api/agent-sessions/{id}/revoke`
 
@@ -53,7 +53,7 @@ In `config.json`:
 
 ```bash
 # Set session token
-export PINCHTAB_SESSION=pts_abc123...
+export PINCHTAB_SESSION=ses_abc123...
 
 # CLI automatically uses session auth
 pinchtab snap

@@ -388,7 +388,7 @@ func generateSessionID() (string, error) {
 	if _, err := rand.Read(buf); err != nil {
 		return "", err
 	}
-	return "pts_" + hex.EncodeToString(buf), nil
+	return "ses_" + hex.EncodeToString(buf), nil
 }
 
 func generateToken() (string, error) {
@@ -396,7 +396,7 @@ func generateToken() (string, error) {
 	if _, err := rand.Read(buf); err != nil {
 		return "", err
 	}
-	return "pts_" + hex.EncodeToString(buf), nil
+	return "ses_" + hex.EncodeToString(buf), nil
 }
 
 func hashToken(token string) [32]byte {

@@ -1025,7 +1025,7 @@ func TestAuthMiddleware_SessionAuthInvalid(t *testing.T) {
 	}))
 
 	req := httptest.NewRequest("GET", "/health", nil)
-	req.Header.Set("Authorization", "Session pts_invalidtoken")
+	req.Header.Set("Authorization", "Session ses_invalidtoken")
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
 
@@ -1045,7 +1045,7 @@ func TestAuthMiddleware_SessionAuthDisabled(t *testing.T) {
 	}))
 
 	req := httptest.NewRequest("GET", "/health", nil)
-	req.Header.Set("Authorization", "Session pts_sometoken")
+	req.Header.Set("Authorization", "Session ses_sometoken")
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
 

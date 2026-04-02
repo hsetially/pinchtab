@@ -456,7 +456,7 @@ curl -X POST /api/agent-sessions -d '{"agentId":"my-agent","label":"dev"}'
 curl /api/agent-sessions
 
 # Get current session (requires Session auth)
-curl -H "Authorization: Session pts_..." /api/agent-sessions/me
+curl -H "Authorization: Session ses_..." /api/agent-sessions/me
 
 # Rotate token
 curl -X POST /api/agent-sessions/{id}/rotate

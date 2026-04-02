@@ -89,10 +89,10 @@ Response:
 
 ```json
 {
-  "id": "pts_e6ac8132fe7e7016",
+  "id": "ses_e6ac8132fe7e7016",
   "agentId": "bosch",
   "label": "research task",
-  "sessionToken": "pts_1138f72e77f23c49...",
+  "sessionToken": "ses_1138f72e77f23c49...",
   "status": "active"
 }
 ```
@@ -102,7 +102,7 @@ The `sessionToken` is returned exactly once. Store it — PinchTab only persists
 ### Use a Session
 
 ```bash
-export PINCHTAB_SESSION=pts_1138f72e77f23c49...
+export PINCHTAB_SESSION=ses_1138f72e77f23c49...
 pinchtab nav https://example.com
 pinchtab snap -i -c
 pinchtab click e5
@@ -112,7 +112,7 @@ Or pass the header directly:
 
 ```bash
 curl -X POST http://localhost:9867/navigate \
-  -H "Authorization: Session pts_1138f72e77f23c49..." \
+  -H "Authorization: Session ses_1138f72e77f23c49..." \
   -H "Content-Type: application/json" \
   -d '{"url": "https://example.com"}'
 ```
@@ -127,11 +127,11 @@ curl http://localhost:9867/api/agent-sessions \
   -H "Authorization: Bearer $PINCHTAB_TOKEN"
 
 # Rotate token (old token invalidated, new one returned)
-curl -X POST http://localhost:9867/api/agent-sessions/pts_e6ac8132fe7e7016/rotate \
+curl -X POST http://localhost:9867/api/agent-sessions/ses_e6ac8132fe7e7016/rotate \
   -H "Authorization: Bearer $PINCHTAB_TOKEN"
 
 # Revoke
-curl -X POST http://localhost:9867/api/agent-sessions/pts_e6ac8132fe7e7016/revoke \
+curl -X POST http://localhost:9867/api/agent-sessions/ses_e6ac8132fe7e7016/revoke \
   -H "Authorization: Bearer $PINCHTAB_TOKEN"
 ```
 

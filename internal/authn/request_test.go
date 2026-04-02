@@ -73,20 +73,20 @@ func TestClientIP_FallsBackToRawRemoteAddr(t *testing.T) {
 
 func TestCredentialsFromRequest_SessionAuth(t *testing.T) {
 	req := httptest.NewRequest("GET", "/", nil)
-	req.Header.Set("Authorization", "Session pts_abc123")
+	req.Header.Set("Authorization", "Session ses_abc123")
 
 	creds := CredentialsFromRequest(req)
 	if creds.Method != MethodSession {
 		t.Fatalf("Method = %q, want %q", creds.Method, MethodSession)
 	}
-	if creds.Value != "pts_abc123" {
-		t.Fatalf("Value = %q, want %q", creds.Value, "pts_abc123")
+	if creds.Value != "ses_abc123" {
+		t.Fatalf("Value = %q, want %q", creds.Value, "ses_abc123")
 	}
 }
 
 func TestCredentialsFromRequest_SessionAuthCaseInsensitive(t *testing.T) {
 	req := httptest.NewRequest("GET", "/", nil)
-	req.Header.Set("Authorization", "SESSION pts_token")
+	req.Header.Set("Authorization", "SESSION ses_token")
 
 	creds := CredentialsFromRequest(req)
 	if creds.Method != MethodSession {

@@ -417,7 +417,7 @@ export default function AgentActivityWorkspace({
   const unlabeledPtsKey = useMemo(() => {
     const apiIds = new Set(agentSessions.map((s) => s.id));
     return derivedSessions
-      .filter((s) => s.id.startsWith("pts_") && !apiIds.has(s.id))
+      .filter((s) => s.id.startsWith("ses_") && !apiIds.has(s.id))
       .map((s) => s.id)
       .sort()
       .join(",");

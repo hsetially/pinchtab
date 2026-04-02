@@ -10,7 +10,7 @@ import (
 )
 
 func TestStoreRecordAndQuery(t *testing.T) {
-	store, err := NewStore(t.TempDir(), 30*time.Minute, 1)
+	store, err := NewStore(t.TempDir(), 1)
 	if err != nil {
 		t.Fatalf("NewStore: %v", err)
 	}
@@ -40,7 +40,7 @@ func TestStoreRecordAndQuery(t *testing.T) {
 
 func TestStoreWritesJSONLFile(t *testing.T) {
 	root := t.TempDir()
-	store, err := NewStore(root, 30*time.Minute, 1)
+	store, err := NewStore(root, 1)
 	if err != nil {
 		t.Fatalf("NewStore: %v", err)
 	}
@@ -63,7 +63,7 @@ func TestStoreWritesJSONLFile(t *testing.T) {
 
 func TestStorePartitionsDashboardEventsOutsidePrimaryLog(t *testing.T) {
 	root := t.TempDir()
-	store, err := NewStore(root, 30*time.Minute, 1)
+	store, err := NewStore(root, 1)
 	if err != nil {
 		t.Fatalf("NewStore: %v", err)
 	}
@@ -136,7 +136,7 @@ func TestStorePartitionsDashboardEventsOutsidePrimaryLog(t *testing.T) {
 
 func TestStorePrunesExpiredDailyFiles(t *testing.T) {
 	root := t.TempDir()
-	store, err := NewStore(root, 30*time.Minute, 1)
+	store, err := NewStore(root, 1)
 	if err != nil {
 		t.Fatalf("NewStore: %v", err)
 	}
@@ -186,7 +186,7 @@ func TestNewStorePrunesExpiredDailyFilesOnStartup(t *testing.T) {
 		t.Fatalf("WriteFile keep: %v", err)
 	}
 
-	if _, err := NewStore(root, 30*time.Minute, 30); err != nil {
+	if _, err := NewStore(root, 30); err != nil {
 		t.Fatalf("NewStore: %v", err)
 	}
 
@@ -217,7 +217,7 @@ func TestNewStorePrunesExpiredSourceSpecificDailyFilesOnStartup(t *testing.T) {
 		t.Fatalf("WriteFile keep: %v", err)
 	}
 
-	if _, err := NewStore(root, 30*time.Minute, 30); err != nil {
+	if _, err := NewStore(root, 30); err != nil {
 		t.Fatalf("NewStore: %v", err)
 	}
 
@@ -240,7 +240,7 @@ func TestNewRecorderDisabledReturnsNoop(t *testing.T) {
 }
 
 func TestNewStoreRejectsZeroRetentionDays(t *testing.T) {
-	if _, err := NewStore(t.TempDir(), 30*time.Minute, 0); err == nil {
+	if _, err := NewStore(t.TempDir(), 0); err == nil {
 		t.Fatal("expected NewStore to reject zero retentionDays")
 	}
 }
@@ -259,7 +259,7 @@ func TestClampQueryLimit(t *testing.T) {
 
 func TestStoreRecord_SanitizesURLBeforePersisting(t *testing.T) {
 	root := t.TempDir()
-	store, err := NewStore(root, 30*time.Minute, 1)
+	store, err := NewStore(root, 1)
 	if err != nil {
 		t.Fatalf("NewStore: %v", err)
 	}

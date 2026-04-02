@@ -2,7 +2,6 @@ package activity
 
 import (
 	"bufio"
-	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -16,15 +15,13 @@ import (
 )
 
 const (
-	defaultSessionIdleTimeout = 30 * time.Minute
-	defaultQueryLimit         = 200
+	defaultQueryLimit = 200
 	maxQueryLimit             = 1000
 	defaultRetentionDays      = 1
 )
 
 type Config struct {
 	Enabled       bool
-	SessionIdle   time.Duration
 	RetentionDays int
 }
 
@@ -68,11 +65,6 @@ type Filter struct {
 	Limit       int
 }
 
-type sessionState struct {
-	SessionID string
-	LastSeen  time.Time
-}
-
 type Recorder interface {
 	Enabled() bool
 	Record(Event) error
@@ -80,12 +72,10 @@ type Recorder interface {
 }
 
 type Store struct {
-	dir              string
-	sessionIdleLimit time.Duration
-	retentionDays    int
+	dir           string
+	retentionDays int
 
-	mu       sync.Mutex
-	sessions map[string]sessionState
+	mu sync.Mutex
 }
 
 type noopRecorder struct{}
@@ -94,29 +84,21 @@ func NewRecorder(cfg Config, stateDir string) (Recorder, error) {
 	if !cfg.Enabled {
 		return noopRecorder{}, nil
 	}
-	if cfg.SessionIdle <= 0 {
-		cfg.SessionIdle = defaultSessionIdleTimeout
-	}
-	return NewStore(stateDir, cfg.SessionIdle, cfg.RetentionDays)
+	return NewStore(stateDir, cfg.RetentionDays)
 }
 
-func NewStore(stateDir string, sessionIdle time.Duration, retentionDays int) (*Store, error) {
+func NewStore(stateDir string, retentionDays int) (*Store, error) {
 	activityDir := filepath.Join(stateDir, "activity")
 	if err := os.MkdirAll(activityDir, 0750); err != nil {
 		return nil, fmt.Errorf("create activity dir: %w", err)
-	}
-	if sessionIdle <= 0 {
-		sessionIdle = defaultSessionIdleTimeout
 	}
 	if retentionDays <= 0 {
 		return nil, fmt.Errorf("activity retentionDays must be > 0 (got %d)", retentionDays)
 	}
 
 	store := &Store{
-		dir:              activityDir,
-		sessionIdleLimit: sessionIdle,
-		retentionDays:    retentionDays,
-		sessions:         make(map[string]sessionState),
+		dir:           activityDir,
+		retentionDays: retentionDays,
 	}
 	if err := store.pruneExpiredFiles(time.Now().UTC()); err != nil {
 		return nil, err
@@ -142,9 +124,6 @@ func (s *Store) Record(evt Event) error {
 		evt.Timestamp = evt.Timestamp.UTC()
 	}
 	evt.URL = sanitizeActivityURL(evt.URL)
-	if evt.SessionID == "" {
-		evt.SessionID = s.sessionIDLocked(evt)
-	}
 
 	if err := s.pruneExpiredFilesLocked(evt.Timestamp); err != nil {
 		return err
@@ -286,30 +265,7 @@ func (f Filter) matches(evt Event) bool {
 	return true
 }
 
-func (s *Store) sessionIDLocked(evt Event) string {
-	key := evt.ActorID
-	if key == "" {
-		key = "agent:" + evt.AgentID
-	}
-	if key == "" || key == "agent:" {
-		return ""
-	}
 
-	now := evt.Timestamp
-	prev, ok := s.sessions[key]
-	if ok && now.Sub(prev.LastSeen) <= s.sessionIdleLimit {
-		prev.LastSeen = now
-		s.sessions[key] = prev
-		return prev.SessionID
-	}
-
-	sessionID := randomID("ses_")
-	s.sessions[key] = sessionState{
-		SessionID: sessionID,
-		LastSeen:  now,
-	}
-	return sessionID
-}
 
 func FingerprintToken(token string) string {
 	token = strings.TrimSpace(token)
@@ -411,14 +367,6 @@ func (s *Store) pruneExpiredFilesLocked(now time.Time) error {
 	}
 
 	return nil
-}
-
-func randomID(prefix string) string {
-	b := make([]byte, 4)
-	if _, err := rand.Read(b); err != nil {
-		return fmt.Sprintf("%s%x", prefix, time.Now().UnixNano()&0xffffffff)
-	}
-	return prefix + hex.EncodeToString(b)
 }
 
 func appendJSONL(path string, line []byte) error {
