@@ -425,6 +425,12 @@ func (h *Handlers) HandleDownload(w http.ResponseWriter, r *http.Request) {
 			slog.Info("download: Chrome navigation aborted, falling back to direct fetch", "url", dlURL)
 			body, mime, status, fetchErr := h.fetchDirectWithCookies(tCtx, browserCtx, dlURL, maxDownloadBytes)
 			if fetchErr != nil {
+				// Return 400 for redirect-blocked errors (SSRF protection)
+				errMsg := fetchErr.Error()
+				if strings.Contains(errMsg, "blocked") || strings.Contains(errMsg, "private") {
+					httpx.Error(w, 400, fmt.Errorf("unsafe browser request: %w", fetchErr))
+					return
+				}
 				httpx.Error(w, 502, fmt.Errorf("download fallback: %w", fetchErr))
 				return
 			}
