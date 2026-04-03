@@ -48,25 +48,6 @@ func TestInferDecompressedContentType(t *testing.T) {
 	}
 }
 
-func TestDomainMatchesCookie(t *testing.T) {
-	tests := []struct {
-		cookieDomain string
-		host         string
-		want         bool
-	}{
-		{".example.com", "www.example.com", true},
-		{".example.com", "example.com", true},
-		{"example.com", "example.com", true},
-		{".example.com", "evil.com", false},
-		{".other.com", "example.com", false},
-	}
-	for _, tt := range tests {
-		if got := domainMatchesCookie(tt.cookieDomain, tt.host); got != tt.want {
-			t.Errorf("domainMatchesCookie(%q, %q) = %v, want %v", tt.cookieDomain, tt.host, got, tt.want)
-		}
-	}
-}
-
 func TestIsNavigationAborted(t *testing.T) {
 	tests := []struct {
 		err  error

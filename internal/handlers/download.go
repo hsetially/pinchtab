@@ -548,12 +548,11 @@ func (h *Handlers) writeDownloadResponse(w http.ResponseWriter, body []byte, mim
 // the browser session. Used as a fallback when Chrome's navigation aborts
 // (e.g. for .gz files or other binary downloads).
 func (h *Handlers) fetchDirectWithCookies(ctx context.Context, browserCtx context.Context, dlURL string, maxBytes int) (body []byte, contentType string, statusCode int, err error) {
-	parsed, err := url.Parse(dlURL)
-	if err != nil {
-		return nil, "", 0, fmt.Errorf("parse URL: %w", err)
-	}
-
-	// Pull cookies from the browser for this URL.
+	// Pull cookies from the browser for this URL via CDP.
+	// Note: CDP's GetCookies with a URL already returns domain-scoped cookies.
+	// We forward all cookies including HttpOnly ones - this is intentional for
+	// download functionality (browsers wouldn't expose HttpOnly to JS, but we're
+	// acting as the browser itself, not as JS running in the page).
 	var browserCookies []*network.Cookie
 	if fetchErr := chromedp.Run(browserCtx,
 		chromedp.ActionFunc(func(ctx context.Context) error {
@@ -573,10 +572,11 @@ func (h *Handlers) fetchDirectWithCookies(ctx context.Context, browserCtx contex
 		req.Header.Set("User-Agent", h.Config.UserAgent)
 	}
 	req.Header.Set("Accept", "*/*")
+
+	// Forward browser cookies. CDP already scopes cookies by URL/domain,
+	// so we just add them directly without additional filtering.
 	for _, c := range browserCookies {
-		if domainMatchesCookie(c.Domain, parsed.Host) {
-			req.AddCookie(&http.Cookie{Name: c.Name, Value: c.Value})
-		}
+		req.AddCookie(&http.Cookie{Name: c.Name, Value: c.Value})
 	}
 
 	client := &http.Client{
@@ -601,12 +601,23 @@ func (h *Handlers) fetchDirectWithCookies(ctx context.Context, browserCtx contex
 	}
 	defer func() { _ = resp.Body.Close() }()
 
+	// Check Content-Length early to avoid reading oversized responses.
+	// This provides a fast-fail for obviously too-large downloads.
+	if cl := resp.Header.Get("Content-Length"); cl != "" {
+		if contentLength, parseErr := strconv.ParseInt(cl, 10, 64); parseErr == nil {
+			if contentLength > int64(maxBytes) {
+				return nil, "", 0, errDownloadTooLarge
+			}
+		}
+	}
+
 	reader := io.Reader(resp.Body)
+	isGzip := isGzipContent(resp.Header.Get("Content-Type"), dlURL) &&
+		!strings.EqualFold(resp.Header.Get("Content-Encoding"), "gzip")
 
 	// Decompress gzip if the content itself is gzip-encoded (e.g. .gz files)
 	// but NOT if the transport encoding is gzip (Go handles that automatically).
-	if isGzipContent(resp.Header.Get("Content-Type"), dlURL) &&
-		!strings.EqualFold(resp.Header.Get("Content-Encoding"), "gzip") {
+	if isGzip {
 		gz, gzErr := gzip.NewReader(resp.Body)
 		if gzErr != nil {
 			return nil, "", 0, fmt.Errorf("gzip decompress: %w", gzErr)
@@ -615,6 +626,10 @@ func (h *Handlers) fetchDirectWithCookies(ctx context.Context, browserCtx contex
 		reader = gz
 	}
 
+	// LimitReader protects against gzip bombs: a small compressed payload could
+	// decompress to gigabytes. By limiting the *decompressed* stream (not the
+	// compressed input), we bound memory usage regardless of compression ratio.
+	// Default maxBytes is 20MB, capped at 100MB via config.
 	data, err := io.ReadAll(io.LimitReader(reader, int64(maxBytes)+1))
 	if err != nil {
 		return nil, "", 0, err
@@ -628,17 +643,11 @@ func (h *Handlers) fetchDirectWithCookies(ctx context.Context, browserCtx contex
 		ct = "application/octet-stream"
 	}
 	// If we decompressed gzip, report the inner content type
-	if isGzipContent(ct, dlURL) {
+	if isGzip {
 		ct = inferDecompressedContentType(dlURL, ct)
 	}
 
 	return data, ct, resp.StatusCode, nil
-}
-
-func domainMatchesCookie(cookieDomain, host string) bool {
-	cookieDomain = strings.TrimPrefix(cookieDomain, ".")
-	return strings.EqualFold(host, cookieDomain) ||
-		strings.HasSuffix(host, "."+cookieDomain)
 }
 
 func isGzipContent(contentType, rawURL string) bool {
