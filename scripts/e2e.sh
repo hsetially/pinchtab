@@ -23,7 +23,9 @@ show_filter_status() {
 
 # Detect available docker compose command
 COMPOSE="docker compose"
-if docker compose version >/dev/null 2>&1; then
+if [ -n "${PINCHTAB_COMPOSE:-}" ]; then
+  COMPOSE="${PINCHTAB_COMPOSE}"
+elif docker compose version >/dev/null 2>&1; then
   COMPOSE="docker compose"
 elif command -v docker-compose >/dev/null 2>&1; then
   COMPOSE="docker-compose"

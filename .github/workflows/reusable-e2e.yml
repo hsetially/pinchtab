@@ -62,6 +62,12 @@ jobs:
             exit 127
           fi
 
+      - name: Install E2E runtime deps
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y jq coreutils
+
       - name: Run E2E suite
         id: e2e
         run: |
@@ -94,6 +100,7 @@ jobs:
         env:
           DOCKER_BUILDKIT: 1
           COMPOSE_DOCKER_CLI_BUILD: 1
+          PINCHTAB_COMPOSE: ${{ steps.compose.outputs.command }}
 
       - name: Upload E2E artifacts
         if: always()
