@@ -309,7 +309,7 @@ func (s *Store) queryFiles(source string) []string {
 		if !isActivityLogFile(name) {
 			continue
 		}
-		if source == "" && !isPrimaryDailyActivityLog(name) {
+		if source != "" && !isSourceLogFile(name, source) {
 			continue
 		}
 		files = append(files, filepath.Join(s.dir, name))
@@ -421,6 +421,11 @@ func isPrimaryDailyActivityLog(name string) bool {
 	}
 	middle := strings.TrimSuffix(strings.TrimPrefix(name, "events-"), ".jsonl")
 	return len(middle) == len(time.DateOnly)
+}
+
+func isSourceLogFile(name, source string) bool {
+	prefix := "events-" + source + "-"
+	return strings.HasPrefix(name, prefix)
 }
 
 func activityLogDay(name string) (string, bool) {

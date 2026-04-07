@@ -167,7 +167,7 @@ func (h *Handlers) HandleTabs(w http.ResponseWriter, r *http.Request) {
 	tabs := make([]map[string]any, 0, len(targets))
 	appendTab := func(t *target.Info) {
 		// Skip the initial about:blank tab that Chrome creates on launch
-		if bridge.IsTransientURL(t.URL) {
+		if bridge.IsTransientURL(t.URL, h.Config.Port) {
 			return
 		}
 		tabID := string(t.TargetID)

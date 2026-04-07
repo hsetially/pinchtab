@@ -46,7 +46,7 @@ func DefaultFileConfig() FileConfig {
 	return FileConfig{
 		ConfigVersion: CurrentConfigVersion,
 		Server: ServerConfig{
-			Port:     "9867",
+			Port:     defaultPort,
 			Bind:     "127.0.0.1",
 			StateDir: userConfigDir(),
 		},

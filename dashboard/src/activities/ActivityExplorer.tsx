@@ -149,8 +149,10 @@ export default function ActivityExplorer({
 
   const summary = useMemo(
     () =>
-      `${count} events • ${stats.agents} agents • ${stats.tabs} tabs • ${stats.instances} instances`,
-    [count, stats.agents, stats.instances, stats.tabs],
+      embedded
+        ? `${count} events • ${stats.agents} agents`
+        : `${count} events • ${stats.agents} agents • ${stats.tabs} tabs • ${stats.instances} instances`,
+    [count, stats.agents, stats.instances, stats.tabs, embedded],
   );
 
   const updateFilter = (key: keyof ActivityFilters, value: string) => {
@@ -229,6 +231,7 @@ export default function ActivityExplorer({
         loading={loading}
         error={error}
         summary={summary}
+        embedded={embedded}
         onFilterChange={updateFilter}
       />
     </div>

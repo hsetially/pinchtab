@@ -173,7 +173,7 @@ function AnimatedCursor({
 /* ── Loading Dots ── */
 function LoadingDots({ text }: { text: string }) {
   return (
-    <div className="dashboard-panel flex h-56 flex-col items-center justify-center gap-3">
+    <div className="flex h-56 flex-col items-center justify-center gap-3">
       <div className="flex gap-1.5">
         {[0, 1, 2].map((i) => (
           <span
@@ -288,7 +288,7 @@ export default function TabsChart({
   const hasServer = serverData && serverData.length > 0;
 
   return (
-    <div className="dashboard-panel overflow-hidden">
+    <div className="overflow-hidden">
       <div className="flex items-center justify-between border-b border-border-subtle px-4 py-3">
         <div className="flex items-center gap-2.5">
           <div>

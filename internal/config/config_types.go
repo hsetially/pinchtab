@@ -2,6 +2,9 @@ package config
 
 import "time"
 
+const defaultPort = "9867"
+
+
 // RuntimeConfig holds all runtime settings used throughout the application.
 // This is the single source of truth for configuration at runtime.
 type RuntimeConfig struct {

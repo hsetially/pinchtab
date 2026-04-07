@@ -105,8 +105,12 @@ func sourceFor(r *http.Request, fallback string) string {
 	if source := strings.TrimSpace(r.Header.Get(HeaderPTSource)); source != "" {
 		return source
 	}
-	if authn.CredentialsFromRequest(r).Method == authn.MethodCookie {
+	creds := authn.CredentialsFromRequest(r)
+	if creds.Method == authn.MethodCookie {
 		return "dashboard"
+	}
+	if creds.Method == authn.MethodHeader || creds.Method == authn.MethodSession {
+		return "client"
 	}
 	return fallback
 }

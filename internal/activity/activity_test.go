@@ -109,12 +109,12 @@ func TestStorePartitionsDashboardEventsOutsidePrimaryLog(t *testing.T) {
 		t.Fatal("dashboard activity log missing dashboard event")
 	}
 
-	gotMain, err := store.Query(Filter{Limit: 10})
+	gotAll, err := store.Query(Filter{Limit: 10})
 	if err != nil {
-		t.Fatalf("Query main: %v", err)
+		t.Fatalf("Query all: %v", err)
 	}
-	if len(gotMain) != 1 || gotMain[0].Source != "server" {
-		t.Fatalf("main query = %#v, want only external server event", gotMain)
+	if len(gotAll) != 2 {
+		t.Fatalf("unfiltered query = %d events, want 2 (server + dashboard)", len(gotAll))
 	}
 
 	gotDashboard, err := store.Query(Filter{Source: "dashboard", Limit: 10})

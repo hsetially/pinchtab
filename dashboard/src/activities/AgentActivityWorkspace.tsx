@@ -488,9 +488,6 @@ export default function AgentActivityWorkspace({
         if (requireAgentIdentity && !(agent.id || "").trim()) {
           return false;
         }
-        if (requireAgentIdentity && agent.id === "anonymous") {
-          return false;
-        }
         return true;
       })
       .sort(

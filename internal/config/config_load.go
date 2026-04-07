@@ -13,7 +13,7 @@ func Load() *RuntimeConfig {
 	cfg := &RuntimeConfig{
 		// Server defaults
 		Bind:              "127.0.0.1",
-		Port:              "9867",
+		Port:              defaultPort,
 		InstancePortStart: 9868,
 		InstancePortEnd:   9968,
 		Token:             os.Getenv("PINCHTAB_TOKEN"),
@@ -169,6 +169,11 @@ func Load() *RuntimeConfig {
 	// Apply file config (only if env var NOT set)
 	applyFileConfig(cfg, fc)
 	finalizeProfileConfig(cfg)
+
+	if cfg.Port == "" {
+		slog.Error("server port is not configured — set server.port in config.json")
+		os.Exit(1)
+	}
 
 	return cfg
 }

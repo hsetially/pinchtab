@@ -11,6 +11,7 @@ interface Props {
   loading: boolean;
   error: string;
   summary: string;
+  embedded?: boolean;
   onFilterChange: (key: keyof ActivityFilters, value: string) => void;
 }
 
@@ -40,21 +41,32 @@ export default function ActivityTimeline({
   loading,
   error,
   summary,
+  embedded = false,
   onFilterChange,
 }: Props) {
+  const filteredEvents = embedded
+    ? events.filter(
+        (e) => !e.source || !["dashboard", "server"].includes(e.source),
+      )
+    : events;
+
   return (
-    <section className="dashboard-panel flex min-h-0 flex-1 flex-col overflow-hidden">
-      <div className="flex items-center justify-between border-b border-border-subtle px-4 py-3">
-        <div>
-          <div className="dashboard-section-label mb-1">Timeline</div>
-          <h2 className="text-sm font-semibold text-text-secondary">
-            Recent events
-          </h2>
+    <section
+      className={`flex min-h-0 flex-1 flex-col overflow-hidden ${embedded ? "" : "dashboard-panel"}`}
+    >
+      {!embedded && (
+        <div className="flex items-center justify-between border-b border-border-subtle px-4 py-3">
+          <div>
+            <div className="dashboard-section-label mb-1">Timeline</div>
+            <h2 className="text-sm font-semibold text-text-secondary">
+              Recent events
+            </h2>
+          </div>
+          <div className="dashboard-mono text-[0.72rem] text-text-muted">
+            {summary}
+          </div>
         </div>
-        <div className="dashboard-mono text-[0.72rem] text-text-muted">
-          {summary}
-        </div>
-      </div>
+      )}
 
       {error && (
         <div className="border-b border-destructive/30 bg-destructive/10 px-4 py-2 text-xs text-destructive">
@@ -63,7 +75,7 @@ export default function ActivityTimeline({
       )}
 
       <div className="min-h-0 flex-1 overflow-auto">
-        {!loading && events.length === 0 ? (
+        {!loading && filteredEvents.length === 0 ? (
           <EmptyState
             icon="📜"
             title="No matching activity"
@@ -71,7 +83,7 @@ export default function ActivityTimeline({
           />
         ) : (
           <div className="divide-y divide-border-subtle/70">
-            {events.map((event, index) => (
+            {filteredEvents.map((event, index) => (
               <div
                 key={`${event.requestId || event.timestamp}-${index}`}
                 className="px-4 py-2 transition-colors hover:bg-white/2"

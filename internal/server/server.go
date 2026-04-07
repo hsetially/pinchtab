@@ -39,9 +39,6 @@ func RunDashboard(cfg *config.RuntimeConfig, version string) {
 	bridge.CleanupOrphanedChromeProcesses(cfg.ProfileDir)
 
 	dashPort := cfg.Port
-	if dashPort == "" {
-		dashPort = "9870"
-	}
 	startedAt := time.Now()
 
 	profilesDir := cfg.ProfilesBaseDir

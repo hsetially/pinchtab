@@ -6,6 +6,7 @@ package proxy
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -25,6 +26,10 @@ type Options struct {
 	Client         *http.Client
 	AllowedURL     func(*url.URL) bool
 	RewriteRequest func(*http.Request)
+	// OnResponse is called with the upstream response body for non-streaming
+	// responses (Content-Type application/json, body ≤ 64 KB). The original
+	// request is passed so callers can enrich activity context.
+	OnResponse func(origReq *http.Request, body []byte)
 }
 
 var hopByHopHeaders = map[string]struct{}{
@@ -93,6 +98,18 @@ func Forward(w http.ResponseWriter, r *http.Request, targetURL *url.URL, opts Op
 	defer func() { _ = resp.Body.Close() }()
 
 	copyHeaders(w.Header(), resp.Header)
+
+	// For small JSON responses, buffer to allow OnResponse to inspect the body.
+	if opts.OnResponse != nil && isSmallJSON(resp) {
+		body, readErr := io.ReadAll(io.LimitReader(resp.Body, 64<<10))
+		w.WriteHeader(resp.StatusCode)
+		_, _ = w.Write(body)
+		if readErr == nil {
+			opts.OnResponse(r, body)
+		}
+		return
+	}
+
 	w.WriteHeader(resp.StatusCode)
 
 	buf := make([]byte, 32*1024)
@@ -108,6 +125,14 @@ func Forward(w http.ResponseWriter, r *http.Request, targetURL *url.URL, opts Op
 			break
 		}
 	}
+}
+
+func isSmallJSON(resp *http.Response) bool {
+	ct := resp.Header.Get("Content-Type")
+	if !strings.HasPrefix(ct, "application/json") {
+		return false
+	}
+	return resp.ContentLength >= 0 && resp.ContentLength <= 64<<10
 }
 
 // HTTP forwards an HTTP request to targetURL, streaming the response

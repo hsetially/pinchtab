@@ -226,6 +226,41 @@ export async function closeTab(tabId: string): Promise<void> {
   await request(`/tabs/${encodeURIComponent(tabId)}/close`, { method: "POST" });
 }
 
+export interface ConsoleLogEntry {
+  timestamp: string;
+  level: string;
+  message: string;
+  source?: string;
+}
+
+export interface ErrorLogEntry {
+  timestamp: string;
+  message: string;
+  type?: string;
+  url?: string;
+  line?: number;
+  column?: number;
+  stack?: string;
+}
+
+export async function fetchConsoleLogs(
+  tabId: string,
+): Promise<ConsoleLogEntry[]> {
+  const res = await request<{ console: ConsoleLogEntry[] }>(
+    `/console?tabId=${encodeURIComponent(tabId)}`,
+  );
+  return res.console || [];
+}
+
+export async function fetchErrorLogs(
+  tabId: string,
+): Promise<ErrorLogEntry[]> {
+  const res = await request<{ errors: ErrorLogEntry[] }>(
+    `/errors?tabId=${encodeURIComponent(tabId)}`,
+  );
+  return res.errors || [];
+}
+
 export async function navigateTab(
   tabId: string,
   url: string,

@@ -11,8 +11,6 @@ import (
 	"os"
 	"strings"
 	"time"
-
-	"github.com/pinchtab/pinchtab/internal/activity"
 )
 
 func DoGet(client *http.Client, base, token, path string, params url.Values) map[string]any {
@@ -21,8 +19,7 @@ func DoGet(client *http.Client, base, token, path string, params url.Values) map
 		u += "?" + params.Encode()
 	}
 	req, _ := http.NewRequest("GET", u, nil)
-	setAuthHeader(req, token)
-	req.Header.Set(activity.HeaderAgentID, "cli")
+	setClientHeaders(req, token)
 	resp, err := client.Do(req)
 	if err != nil {
 		fatal("Request failed: %v", err)
@@ -57,8 +54,7 @@ func DoGetRaw(client *http.Client, base, token, path string, params url.Values) 
 		u += "?" + params.Encode()
 	}
 	req, _ := http.NewRequest("GET", u, nil)
-	setAuthHeader(req, token)
-	req.Header.Set(activity.HeaderAgentID, "cli")
+	setClientHeaders(req, token)
 	resp, err := client.Do(req)
 	if err != nil {
 		fatal("Request failed: %v", err)
@@ -77,8 +73,7 @@ func DoPost(client *http.Client, base, token, path string, body map[string]any) 
 	data, _ := json.Marshal(body)
 	req, _ := http.NewRequest("POST", base+path, bytes.NewReader(data))
 	req.Header.Set("Content-Type", "application/json")
-	setAuthHeader(req, token)
-	req.Header.Set(activity.HeaderAgentID, "cli")
+	setClientHeaders(req, token)
 	resp, err := client.Do(req)
 	if err != nil {
 		fatal("Request failed: %v", err)
@@ -113,8 +108,7 @@ func DoDelete(client *http.Client, base, token, path string, params url.Values) 
 		u += "?" + params.Encode()
 	}
 	req, _ := http.NewRequest("DELETE", u, nil)
-	setAuthHeader(req, token)
-	req.Header.Set(activity.HeaderAgentID, "cli")
+	setClientHeaders(req, token)
 	resp, err := client.Do(req)
 	if err != nil {
 		fatal("Request failed: %v", err)
@@ -146,8 +140,7 @@ func DoDeleteJSON(client *http.Client, base, token, path string, body map[string
 	data, _ := json.Marshal(body)
 	req, _ := http.NewRequest("DELETE", base+path, bytes.NewReader(data))
 	req.Header.Set("Content-Type", "application/json")
-	setAuthHeader(req, token)
-	req.Header.Set(activity.HeaderAgentID, "cli")
+	setClientHeaders(req, token)
 	resp, err := client.Do(req)
 	if err != nil {
 		fatal("Request failed: %v", err)
@@ -192,7 +185,8 @@ func ResolveInstanceBase(orchBase, token, instanceID, bind string) string {
 	return fmt.Sprintf("http://%s:%s", bind, inst.Port)
 }
 
-func setAuthHeader(req *http.Request, token string) {
+func setClientHeaders(req *http.Request, token string) {
+	req.Header.Set("X-PinchTab-Source", "client")
 	if token == "" {
 		return
 	}
