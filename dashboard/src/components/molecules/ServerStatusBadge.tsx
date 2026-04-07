@@ -33,9 +33,7 @@ export default function ServerStatusBadge({
           title={`${instance.profileName} · ${instance.status} · ${instance.port}`}
         >
           <div className={`h-1.5 w-1.5 shrink-0 rounded-full ${statusColor}`} />
-          <span className="text-[10px] tracking-wider">
-            {instance.port}
-          </span>
+          <span className="text-[10px] tracking-wider">{instance.port}</span>
         </div>
       );
     }
@@ -45,7 +43,9 @@ export default function ServerStatusBadge({
         type="button"
         onClick={onToggleSidebar}
         className="mr-2 flex items-center gap-1.5 px-2 py-1 text-text-muted transition-colors hover:text-text-primary"
-        title={sidebarCollapsed ? "Expand instance list" : "Collapse instance list"}
+        title={
+          sidebarCollapsed ? "Expand instance list" : "Collapse instance list"
+        }
       >
         <svg
           viewBox="0 0 24 24"
@@ -67,9 +67,7 @@ export default function ServerStatusBadge({
           {instance.status} · {tabCount} tab
           {tabCount !== 1 ? "s" : ""} ·{" "}
         </span>
-        <span className="text-[10px] tracking-wider">
-          {instance.port}
-        </span>
+        <span className="text-[10px] tracking-wider">{instance.port}</span>
       </button>
     );
   }
@@ -91,9 +89,7 @@ export default function ServerStatusBadge({
     >
       <div
         className={`h-1.5 w-1.5 rounded-full ${
-          serverInfo.restartRequired
-            ? "bg-warning"
-            : "bg-success animate-pulse"
+          serverInfo.restartRequired ? "bg-warning" : "bg-success animate-pulse"
         }`}
       />
       <span

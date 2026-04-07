@@ -115,7 +115,9 @@ export default function TabBar({
         <div className="ml-auto mb-0.5 flex shrink-0 items-center gap-0.5 self-center">
           <button
             type="button"
-            onClick={() => (onSetTelemetry ? onSetTelemetry(false) : onToggleTelemetry?.())}
+            onClick={() =>
+              onSetTelemetry ? onSetTelemetry(false) : onToggleTelemetry?.()
+            }
             title="Tabs"
             className={`shrink-0 rounded p-1.5 transition-colors ${
               !telemetryActive
@@ -140,7 +142,9 @@ export default function TabBar({
           </button>
           <button
             type="button"
-            onClick={() => (onSetTelemetry ? onSetTelemetry(true) : onToggleTelemetry?.())}
+            onClick={() =>
+              onSetTelemetry ? onSetTelemetry(true) : onToggleTelemetry?.()
+            }
             title="Monitoring"
             className={`mr-1 shrink-0 rounded p-1.5 transition-colors ${
               telemetryActive

@@ -8,22 +8,11 @@ import type { Instance } from "../generated/types";
 
 vi.mock("../services/api", () => ({
   stopInstance: vi.fn(),
+  fetchBackendConfig: vi.fn().mockResolvedValue({
+    config: { multiInstance: { strategy: "always-on" } },
+  }),
   fetchActivity: vi.fn(),
   fetchAllTabs: vi.fn(),
-}));
-
-vi.mock("../components/molecules", () => ({
-  TabsChart: () => <div>Tabs Chart</div>,
-  InstanceListItem: ({
-    instance,
-    onClick,
-  }: {
-    instance: Instance;
-    onClick: () => void;
-  }) => <button onClick={onClick}>{instance.profileName}</button>,
-  InstanceTabsPanel: ({ tabs }: { tabs: { title: string }[] }) => (
-    <div>Tabs Panel ({tabs.length})</div>
-  ),
 }));
 
 const instances: Instance[] = [
@@ -63,6 +52,10 @@ describe("MonitoringPage", () => {
         inst_beta: [],
       },
       currentMemory: {},
+      currentMetrics: {},
+      monitoringSidebarCollapsed: false,
+      selectedMonitoringInstanceId: null,
+      monitoringShowTelemetry: false,
       settings: {
         ...useAppStore.getState().settings,
         monitoring: {
@@ -84,7 +77,9 @@ describe("MonitoringPage", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "beta" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: "beta" }),
+      ).toBeInTheDocument();
     });
 
     await userEvent.click(screen.getByRole("button", { name: "Open Profile" }));

@@ -12,6 +12,10 @@ vi.mock("../services/api", () => ({
   subscribeToInstanceLogs,
 }));
 
+beforeEach(() => {
+  Element.prototype.scrollIntoView = vi.fn();
+});
+
 describe("InstanceLogsPanel", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -30,9 +34,8 @@ describe("InstanceLogsPanel", () => {
     expect(screen.getByText("Loading logs...")).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(document.querySelector("pre")).toHaveTextContent(
-        "first line second line",
-      );
+      expect(screen.getByText("first line")).toBeInTheDocument();
+      expect(screen.getByText("second line")).toBeInTheDocument();
     });
     expect(fetchInstanceLogs).toHaveBeenCalledWith("inst_123");
     expect(subscribeToInstanceLogs).toHaveBeenCalledWith("inst_123", {
@@ -59,7 +62,7 @@ describe("InstanceLogsPanel", () => {
       onLogs?.("streamed logs");
     });
 
-    expect(document.querySelector("pre")).toHaveTextContent("streamed logs");
+    expect(screen.getByText("streamed logs")).toBeInTheDocument();
   });
 
   it("shows the empty state when no instance is available", () => {

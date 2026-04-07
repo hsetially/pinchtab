@@ -81,9 +81,7 @@ export default function SelectedTabPanel({ selectedTab, instanceId }: Props) {
           {activeSubTab === "console" && (
             <ConsolePanel tabId={selectedTab.id} />
           )}
-          {activeSubTab === "errors" && (
-            <ErrorsPanel tabId={selectedTab.id} />
-          )}
+          {activeSubTab === "errors" && <ErrorsPanel tabId={selectedTab.id} />}
         </TabsLayout>
       </div>
     </div>

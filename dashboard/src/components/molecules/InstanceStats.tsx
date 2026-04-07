@@ -1,4 +1,8 @@
-import type { Instance, InstanceMetrics, InstanceTab } from "../../generated/types";
+import type {
+  Instance,
+  InstanceMetrics,
+  InstanceTab,
+} from "../../generated/types";
 
 interface Props {
   instance?: Instance | null;

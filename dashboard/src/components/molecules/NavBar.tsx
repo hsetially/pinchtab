@@ -39,7 +39,9 @@ export default function NavBar({ onRefresh, showLogout = false }: NavBarProps) {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const isMonitoringPage = location.pathname.startsWith("/dashboard/monitoring");
+  const isMonitoringPage = location.pathname.startsWith(
+    "/dashboard/monitoring",
+  );
   const selectedInstance =
     instances.find((i) => i.id === selectedMonitoringInstanceId) ?? null;
 
@@ -118,7 +120,7 @@ export default function NavBar({ onRefresh, showLogout = false }: NavBarProps) {
             sidebarCollapsed={monitoringSidebarCollapsed}
             tabCount={
               selectedInstance
-                ? currentTabs[selectedInstance.id]?.length ?? 0
+                ? (currentTabs[selectedInstance.id]?.length ?? 0)
                 : 0
             }
             onToggleSidebar={() =>

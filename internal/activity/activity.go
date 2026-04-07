@@ -415,14 +415,6 @@ func isActivityLogFile(name string) bool {
 	return name != "events.jsonl" && strings.HasPrefix(name, "events-") && strings.HasSuffix(name, ".jsonl")
 }
 
-func isPrimaryDailyActivityLog(name string) bool {
-	if !isActivityLogFile(name) {
-		return false
-	}
-	middle := strings.TrimSuffix(strings.TrimPrefix(name, "events-"), ".jsonl")
-	return len(middle) == len(time.DateOnly)
-}
-
 func isSourceLogFile(name, source string) bool {
 	prefix := "events-" + source + "-"
 	return strings.HasPrefix(name, prefix)

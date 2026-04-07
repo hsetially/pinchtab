@@ -252,9 +252,7 @@ export async function fetchConsoleLogs(
   return res.console || [];
 }
 
-export async function fetchErrorLogs(
-  tabId: string,
-): Promise<ErrorLogEntry[]> {
+export async function fetchErrorLogs(tabId: string): Promise<ErrorLogEntry[]> {
   const res = await request<{ errors: ErrorLogEntry[] }>(
     `/errors?tabId=${encodeURIComponent(tabId)}`,
   );

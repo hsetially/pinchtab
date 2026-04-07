@@ -1,8 +1,21 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { InstanceTab } from "../generated/types";
 import InstanceTabsPanel from "./InstanceTabsPanel";
+
+vi.mock("../stores/useAppStore", () => ({
+  useAppStore: () => ({
+    instances: [],
+    tabsChartData: [],
+    memoryChartData: [],
+    serverChartData: [],
+    currentMetrics: {},
+    settings: {},
+    monitoringShowTelemetry: false,
+    setMonitoringShowTelemetry: vi.fn(),
+  }),
+}));
 
 const tabs: InstanceTab[] = [
   {
@@ -23,7 +36,6 @@ describe("InstanceTabsPanel", () => {
   it("auto-selects the first tab and shows its details", () => {
     render(<InstanceTabsPanel tabs={tabs} />);
 
-    // Find heading for first tab title
     const titleHeading = screen.getByRole("heading", { name: "Alpha Tab" });
     const detailPanel = titleHeading.closest(".rounded-xl") as HTMLElement;
 
@@ -31,7 +43,6 @@ describe("InstanceTabsPanel", () => {
       within(detailPanel).getByText("https://example.com/alpha"),
     ).toBeInTheDocument();
 
-    // IdBadge will show "ID" instead of "alpha" (shortened tab_alpha)
     expect(within(detailPanel).getByText("ID")).toBeInTheDocument();
   });
 
@@ -39,11 +50,9 @@ describe("InstanceTabsPanel", () => {
     const user = userEvent.setup();
     render(<InstanceTabsPanel tabs={tabs} />);
 
-    // Select Beta tab from list
     const betaTabItem = screen.getByRole("button", { name: /^Beta Tab$/ });
     await user.click(betaTabItem);
 
-    // Find heading for beta tab title
     const titleHeading = screen.getByRole("heading", { name: "Beta Tab" });
     const detailPanel = titleHeading.closest(".rounded-xl") as HTMLElement;
 
