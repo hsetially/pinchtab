@@ -39,9 +39,6 @@ func RunDashboard(cfg *config.RuntimeConfig, version string) {
 	bridge.CleanupOrphanedChromeProcesses(cfg.ProfileDir)
 
 	dashPort := cfg.Port
-	if dashPort == "" {
-		dashPort = "9870"
-	}
 	startedAt := time.Now()
 
 	profilesDir := cfg.ProfilesBaseDir
@@ -78,7 +75,10 @@ func RunDashboard(cfg *config.RuntimeConfig, version string) {
 		MaxLifetime: cfg.Sessions.Agent.MaxLifetime,
 		PersistPath: filepath.Join(cfg.StateDir, "sessions.json"),
 	})
-	agentSessionAPI := dashboard.NewAgentSessionAPI(agentSessionStore)
+	var agentSessionAPI *dashboard.AgentSessionAPI
+	if agentSessionStore.Enabled() {
+		agentSessionAPI = dashboard.NewAgentSessionAPI(agentSessionStore)
+	}
 
 	// Wire up instance events to SSE broadcast
 	orch.OnEvent(func(evt orchestrator.InstanceEvent) {
@@ -90,6 +90,15 @@ func RunDashboard(cfg *config.RuntimeConfig, version string) {
 	actStore, err := activity.NewRecorder(activity.Config{
 		Enabled:       cfg.Observability.Activity.Enabled,
 		RetentionDays: cfg.Observability.Activity.RetentionDays,
+		Events: activity.EventSourceConfig{
+			Dashboard:    cfg.Observability.Activity.Events.Dashboard,
+			Server:       cfg.Observability.Activity.Events.Server,
+			Bridge:       cfg.Observability.Activity.Events.Bridge,
+			Orchestrator: cfg.Observability.Activity.Events.Orchestrator,
+			Scheduler:    cfg.Observability.Activity.Events.Scheduler,
+			MCP:          cfg.Observability.Activity.Events.MCP,
+			Other:        cfg.Observability.Activity.Events.Other,
+		},
 	}, cfg.ActivityStateDir())
 	if err != nil {
 		slog.Error("activity store", "err", err)

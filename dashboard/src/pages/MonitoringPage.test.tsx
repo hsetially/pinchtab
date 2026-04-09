@@ -1,29 +1,34 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import MonitoringPage from "./MonitoringPage";
 import { useAppStore } from "../stores/useAppStore";
 import type { Instance } from "../generated/types";
+import * as api from "../services/api";
 
 vi.mock("../services/api", () => ({
   stopInstance: vi.fn(),
+  fetchInstances: vi.fn().mockResolvedValue([]),
+  launchInstance: vi.fn().mockResolvedValue({
+    id: "inst_default",
+    profileId: "default",
+    profileName: "default",
+    port: "9868",
+    headless: false,
+    status: "starting",
+    startTime: "2026-03-06T10:00:00Z",
+    attached: false,
+  }),
+  fetchBackendConfig: vi.fn().mockResolvedValue({
+    config: {
+      multiInstance: { strategy: "always-on" },
+      profiles: { defaultProfile: "default" },
+      instanceDefaults: { mode: "headed" },
+    },
+  }),
   fetchActivity: vi.fn(),
   fetchAllTabs: vi.fn(),
-}));
-
-vi.mock("../components/molecules", () => ({
-  TabsChart: () => <div>Tabs Chart</div>,
-  InstanceListItem: ({
-    instance,
-    onClick,
-  }: {
-    instance: Instance;
-    onClick: () => void;
-  }) => <button onClick={onClick}>{instance.profileName}</button>,
-  InstanceTabsPanel: ({ tabs }: { tabs: { title: string }[] }) => (
-    <div>Tabs Panel ({tabs.length})</div>
-  ),
 }));
 
 const instances: Instance[] = [
@@ -54,6 +59,7 @@ function ProfilesRouteProbe() {
 describe("MonitoringPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useRealTimers();
     useAppStore.setState({
       instances,
       tabsChartData: [],
@@ -63,6 +69,10 @@ describe("MonitoringPage", () => {
         inst_beta: [],
       },
       currentMemory: {},
+      currentMetrics: {},
+      monitoringSidebarCollapsed: false,
+      selectedMonitoringInstanceId: null,
+      monitoringShowTelemetry: false,
       settings: {
         ...useAppStore.getState().settings,
         monitoring: {
@@ -71,6 +81,10 @@ describe("MonitoringPage", () => {
         },
       },
     });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("opens the selected profile from the active instance header", async () => {
@@ -93,5 +107,95 @@ describe("MonitoringPage", () => {
       expect(screen.getByText("Profiles Route")).toBeInTheDocument();
     });
     expect(screen.getByText("prof_beta")).toBeInTheDocument();
+  });
+
+  it("retries while waiting for an expected default instance", async () => {
+    useAppStore.setState({
+      instances: [],
+      currentTabs: {},
+      selectedMonitoringInstanceId: null,
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/dashboard/monitoring"]}>
+        <Routes>
+          <Route path="/dashboard/monitoring" element={<MonitoringPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(
+      screen.getByText("Starting default instance..."),
+    ).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(api.fetchInstances).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it("shows manual actions when no auto-started instance is expected", async () => {
+    vi.mocked(api.fetchBackendConfig).mockResolvedValueOnce({
+      config: {
+        multiInstance: { strategy: "no-instance" },
+        profiles: { defaultProfile: "default" },
+        instanceDefaults: { mode: "headed" },
+      },
+    } as never);
+    useAppStore.setState({
+      instances: [],
+      currentTabs: {},
+      selectedMonitoringInstanceId: null,
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/dashboard/monitoring"]}>
+        <Routes>
+          <Route path="/dashboard/monitoring" element={<MonitoringPage />} />
+          <Route path="/dashboard/profiles" element={<ProfilesRouteProbe />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(
+      await screen.findByRole("button", { name: "Start Default Instance" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Open Default Profile" }),
+    ).toBeInTheDocument();
+  });
+
+  it("starts the configured default instance from the empty state", async () => {
+    vi.mocked(api.fetchBackendConfig).mockResolvedValueOnce({
+      config: {
+        multiInstance: { strategy: "no-instance" },
+        profiles: { defaultProfile: "default" },
+        instanceDefaults: { mode: "headed" },
+      },
+    } as never);
+    useAppStore.setState({
+      instances: [],
+      currentTabs: {},
+      selectedMonitoringInstanceId: null,
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/dashboard/monitoring"]}>
+        <Routes>
+          <Route path="/dashboard/monitoring" element={<MonitoringPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Start Default Instance" }),
+    );
+
+    await waitFor(() => {
+      expect(api.launchInstance).toHaveBeenCalledWith({
+        profileId: "default",
+        mode: "headed",
+      });
+    });
+    expect(api.fetchInstances).toHaveBeenCalled();
   });
 });

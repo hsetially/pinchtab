@@ -1,12 +1,13 @@
 # Endpoints Reference
 
-This page lists the live HTTP surface exposed by PinchTab. Some routes are only available in bridge mode, some only in full server mode, and some are gated by security settings.
+This page summarizes the live HTTP surface exposed by PinchTab. Some routes are only available in bridge mode, some only in full server mode, and some are gated by security settings.
 
 ## Health And Server Metadata
 
 ```text
 GET  /health
 POST /ensure-chrome
+POST /browser/restart
 GET  /openapi.json
 GET  /help          (alias for /openapi.json)
 GET  /metrics
@@ -36,6 +37,22 @@ Notes:
 
 - `server.token` is treated as write-only by `PUT /api/config`
 - auth routes are for the dashboard session flow
+
+## Dashboard Events And Agents
+
+```text
+GET  /api/events
+GET  /api/agents
+GET  /api/agents/{id}
+GET  /api/agents/{id}/events
+POST /api/agents/{id}/events
+```
+
+Notes:
+
+- `/api/events` is the dashboard SSE stream
+- `/api/agents/{id}/events` streams one agent's recent events
+- `POST /api/agents/{id}/events` ingests agent activity into the dashboard feed
 
 ## Navigation And Tabs
 
@@ -240,6 +257,8 @@ DELETE /tabs/{id}/storage
 
 Storage is captured only for the current origin (active tab). Multi-origin storage is not supported.
 
+All storage routes are gated by `security.allowStateExport`.
+
 GET query parameters:
 
 - `type` — `local`, `session`, or empty (both)
@@ -274,7 +293,7 @@ State management saves and restores browser state (cookies, localStorage, sessio
 
 Notes:
 
-- `POST /state/save` and `GET /state/show` are gated by `security.allowStateExport`
+- `/storage`, `/tabs/{id}/storage`, `GET /state/show`, `POST /state/save`, `POST /state/load`, `DELETE /state`, and `POST /state/clean` are gated by `security.allowStateExport`
 - state files are stored in `{stateDir}/sessions/` with `0600` permissions
 - optional AES-256-GCM encryption via `PINCHTAB_STATE_KEY` environment variable
 - storage is captured only for the current origin (active tab)
@@ -408,6 +427,7 @@ POST /instances/launch
 POST /instances/attach
 POST /instances/attach-bridge
 POST /instances/{id}/start
+POST /instances/{id}/restart
 POST /instances/{id}/stop
 GET  /instances/{id}/logs
 GET  /instances/{id}/logs/stream
@@ -445,7 +465,6 @@ Activity query parameters include:
 - `source`
 - `requestId`
 - `sessionId`
-- `actorId`
 - `agentId`
 - `instanceId`
 - `profileId`
@@ -459,7 +478,7 @@ Activity attribution and source behavior:
 
 - requests tagged with `X-Agent-Id` are recorded as `agentId` and can be filtered with `GET /api/activity?agentId=<id>`
 - unfiltered `GET /api/activity` returns the primary activity feed
-- named internal sources such as `dashboard` or `orchestrator` are stored in source-specific daily files and can be queried with `?source=<name>`
+- named non-client sources such as `dashboard` or `orchestrator` are stored in source-specific daily files only when enabled under `observability.activity.events`, and can then be queried with `?source=<name>`
 
 Scheduler routes are only present when `scheduler.enabled` is true.
 
@@ -467,16 +486,17 @@ Scheduler routes are only present when `scheduler.enabled` is true.
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `POST` | `/api/agent-sessions` | Create a new agent session (body: `{agentId, label?}`) |
-| `GET` | `/api/agent-sessions` | List all agent sessions |
-| `GET` | `/api/agent-sessions/me` | Get current session (requires `Authorization: Session` auth) |
-| `GET` | `/api/agent-sessions/{id}` | Get session details by ID |
-| `POST` | `/api/agent-sessions/{id}/rotate` | Rotate session token |
-| `POST` | `/api/agent-sessions/{id}/revoke` | Revoke session |
+| `POST` | `/sessions` | Create a new agent session (body: `{agentId, label?}`) |
+| `GET` | `/sessions` | List all agent sessions |
+| `GET` | `/sessions/me` | Get current session (requires `Authorization: Session` auth) |
+| `GET` | `/sessions/{id}` | Get session details by ID |
+| `POST` | `/sessions/{id}/revoke` | Revoke session |
 
-All endpoints except `/me` require dashboard auth (bearer or cookie). The `/me` endpoint requires session auth.
+`POST /sessions`, `GET /sessions`, and `GET /sessions/{id}` require dashboard auth (bearer or cookie). The `/me` endpoint requires session auth. `POST /sessions/{id}/revoke` allows dashboard auth or the owning session.
 
-Create and rotate return `sessionToken` — the plaintext token shown only once.
+Create returns `sessionToken` — the plaintext token shown only once.
+
+Session-authenticated callers cannot reach dashboard/admin endpoint families such as config, dashboard agent listings, dashboard event streams, session management, profile management, instance management, or cache controls. They are intended for trusted automation in controlled environments, not for untrusted multi-tenant isolation.
 
 ## Feature Gates
 
@@ -490,7 +510,7 @@ These gates are not ordinary feature toggles. Enabling them is a documented, non
 - clipboard routes -> `security.allowClipboard`
 - attach routes -> `security.attach`
 - screencast routes -> `security.allowScreencast`
-- `/state/save` and `/state/show` -> `security.allowStateExport`
+- storage routes and the full state-management family (`/state/show`, `/state/save`, `/state/load`, `DELETE /state`, `POST /state/clean`) -> `security.allowStateExport`
 
 ## Error Response Format
 

@@ -74,6 +74,28 @@ export interface BackendSessionsConfig {
   dashboard: BackendDashboardSessionConfig;
 }
 
+export interface BackendActivityEventsConfig {
+  dashboard: boolean;
+  server: boolean;
+  bridge: boolean;
+  orchestrator: boolean;
+  scheduler: boolean;
+  mcp: boolean;
+  other: boolean;
+}
+
+export interface BackendActivityConfig {
+  enabled: boolean;
+  sessionIdleSec: number;
+  retentionDays: number;
+  stateDir: string;
+  events: BackendActivityEventsConfig;
+}
+
+export interface BackendObservabilityConfig {
+  activity: BackendActivityConfig;
+}
+
 export interface BackendBrowserConfig {
   version: string;
   binary: string;
@@ -169,6 +191,7 @@ export interface BackendConfig {
   profiles: BackendProfilesConfig;
   multiInstance: BackendMultiInstanceConfig;
   timeouts: BackendTimeoutsConfig;
+  observability: BackendObservabilityConfig;
   sessions: BackendSessionsConfig;
   autoSolver: BackendAutoSolverConfig;
 }
@@ -251,6 +274,23 @@ export const defaultBackendConfig: BackendConfig = {
     shutdownSec: 10,
     waitNavMs: 1000,
   },
+  observability: {
+    activity: {
+      enabled: true,
+      sessionIdleSec: 1800,
+      retentionDays: 1,
+      stateDir: "",
+      events: {
+        dashboard: false,
+        server: false,
+        bridge: false,
+        orchestrator: false,
+        scheduler: false,
+        mcp: false,
+        other: false,
+      },
+    },
+  },
   sessions: {
     dashboard: {
       persist: true,
@@ -324,6 +364,18 @@ export function normalizeBackendConfig(
     timeouts: {
       ...defaultBackendConfig.timeouts,
       ...(input?.timeouts ?? {}),
+    },
+    observability: {
+      ...defaultBackendConfig.observability,
+      ...(input?.observability ?? {}),
+      activity: {
+        ...defaultBackendConfig.observability.activity,
+        ...(input?.observability?.activity ?? {}),
+        events: {
+          ...defaultBackendConfig.observability.activity.events,
+          ...(input?.observability?.activity?.events ?? {}),
+        },
+      },
     },
     sessions: {
       ...defaultBackendConfig.sessions,

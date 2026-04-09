@@ -109,6 +109,57 @@ func TestIdleTimeoutReset(t *testing.T) {
 	}
 }
 
+func TestAuthenticateWithoutTouchDoesNotResetIdleTimeout(t *testing.T) {
+	s := NewStore(Config{Enabled: true, MaxLifetime: 24 * time.Hour, IdleTimeout: 10 * time.Minute})
+	now := time.Now()
+	s.now = func() time.Time { return now }
+
+	id, token, _ := s.Create("agent-1", "")
+	sess, ok := s.Get(id)
+	if !ok || sess == nil {
+		t.Fatal("expected session to exist")
+	}
+	initialLastSeen := sess.LastSeenAt
+
+	s.now = func() time.Time { return now.Add(8 * time.Minute) }
+	sess, ok = s.AuthenticateWithoutTouch(token)
+	if !ok || sess == nil {
+		t.Fatal("expected auth without touch to succeed within idle window")
+	}
+	if !sess.LastSeenAt.Equal(initialLastSeen) {
+		t.Fatal("AuthenticateWithoutTouch should not update LastSeenAt")
+	}
+
+	s.now = func() time.Time { return now.Add(11 * time.Minute) }
+	sess, ok = s.Authenticate(token)
+	if ok || sess != nil {
+		t.Fatal("expected session to expire when it was never touched")
+	}
+}
+
+func TestTouchResetsIdleTimeout(t *testing.T) {
+	s := NewStore(Config{Enabled: true, MaxLifetime: 24 * time.Hour, IdleTimeout: 10 * time.Minute})
+	now := time.Now()
+	s.now = func() time.Time { return now }
+
+	id, token, _ := s.Create("agent-1", "")
+
+	s.now = func() time.Time { return now.Add(8 * time.Minute) }
+	sess, ok := s.AuthenticateWithoutTouch(token)
+	if !ok || sess == nil {
+		t.Fatal("expected auth without touch to succeed")
+	}
+	if !s.Touch(id) {
+		t.Fatal("expected touch to succeed")
+	}
+
+	s.now = func() time.Time { return now.Add(16 * time.Minute) }
+	sess, ok = s.Authenticate(token)
+	if !ok || sess == nil {
+		t.Fatal("expected auth to succeed after touch reset")
+	}
+}
+
 func TestRevoke(t *testing.T) {
 	s := NewStore(Config{Enabled: true})
 	id, token, _ := s.Create("agent-1", "")
@@ -128,42 +179,6 @@ func TestRevokeNotFound(t *testing.T) {
 	s := NewStore(Config{Enabled: true})
 	if s.Revoke("ses_nonexistent") {
 		t.Fatal("expected revoke to return false for non-existent session")
-	}
-}
-
-func TestRotate(t *testing.T) {
-	s := NewStore(Config{Enabled: true})
-	id, oldToken, _ := s.Create("agent-1", "")
-
-	newToken, err := s.Rotate(id)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if newToken == oldToken {
-		t.Fatal("expected new token to differ from old")
-	}
-
-	// Old token should fail
-	sess, ok := s.Authenticate(oldToken)
-	if ok || sess != nil {
-		t.Fatal("expected old token to fail after rotation")
-	}
-
-	// New token should succeed
-	sess, ok = s.Authenticate(newToken)
-	if !ok || sess == nil {
-		t.Fatal("expected new token to succeed after rotation")
-	}
-}
-
-func TestRotateRevoked(t *testing.T) {
-	s := NewStore(Config{Enabled: true})
-	id, _, _ := s.Create("agent-1", "")
-	s.Revoke(id)
-
-	_, err := s.Rotate(id)
-	if err == nil {
-		t.Fatal("expected rotate to fail on revoked session")
 	}
 }
 

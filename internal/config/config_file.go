@@ -37,6 +37,13 @@ func DefaultFileConfig() FileConfig {
 	activityEnabled := true
 	activitySessionIdleSec := 1800
 	activityRetentionDays := 1
+	activityDashboardEvents := false
+	activityServerEvents := false
+	activityBridgeEvents := false
+	activityOrchestratorEvents := false
+	activitySchedulerEvents := false
+	activityMCPEvents := false
+	activityOtherEvents := false
 	dashboardSessionPersist := true
 	dashboardSessionIdleSec := 7 * 24 * 60 * 60
 	dashboardSessionMaxLifetimeSec := 7 * 24 * 60 * 60
@@ -46,7 +53,7 @@ func DefaultFileConfig() FileConfig {
 	return FileConfig{
 		ConfigVersion: CurrentConfigVersion,
 		Server: ServerConfig{
-			Port:     "9867",
+			Port:     defaultPort,
 			Bind:     "127.0.0.1",
 			StateDir: userConfigDir(),
 		},
@@ -117,6 +124,15 @@ func DefaultFileConfig() FileConfig {
 				SessionIdleSec: &activitySessionIdleSec,
 				RetentionDays:  &activityRetentionDays,
 				StateDir:       "",
+				Events: ActivityEventsFileConfig{
+					Dashboard:    &activityDashboardEvents,
+					Server:       &activityServerEvents,
+					Bridge:       &activityBridgeEvents,
+					Orchestrator: &activityOrchestratorEvents,
+					Scheduler:    &activitySchedulerEvents,
+					MCP:          &activityMCPEvents,
+					Other:        &activityOtherEvents,
+				},
 			},
 		},
 		Sessions: SessionsFileConfig{
@@ -262,10 +278,21 @@ type observabilityFileConfigJSON struct {
 }
 
 type activityConfigJSON struct {
-	Enabled        *bool  `json:"enabled"`
-	SessionIdleSec *int   `json:"sessionIdleSec"`
-	RetentionDays  *int   `json:"retentionDays"`
-	StateDir       string `json:"stateDir"`
+	Enabled        *bool                    `json:"enabled"`
+	SessionIdleSec *int                     `json:"sessionIdleSec"`
+	RetentionDays  *int                     `json:"retentionDays"`
+	StateDir       string                   `json:"stateDir"`
+	Events         activityEventsConfigJSON `json:"events"`
+}
+
+type activityEventsConfigJSON struct {
+	Dashboard    *bool `json:"dashboard,omitempty"`
+	Server       *bool `json:"server,omitempty"`
+	Bridge       *bool `json:"bridge,omitempty"`
+	Orchestrator *bool `json:"orchestrator,omitempty"`
+	Scheduler    *bool `json:"scheduler,omitempty"`
+	MCP          *bool `json:"mcp,omitempty"`
+	Other        *bool `json:"other,omitempty"`
 }
 
 type sessionsFileConfigJSON struct {
@@ -409,6 +436,16 @@ func (fc FileConfig) MarshalJSON() ([]byte, error) {
 				Enabled:        fc.Observability.Activity.Enabled,
 				SessionIdleSec: fc.Observability.Activity.SessionIdleSec,
 				RetentionDays:  fc.Observability.Activity.RetentionDays,
+				StateDir:       fc.Observability.Activity.StateDir,
+				Events: activityEventsConfigJSON{
+					Dashboard:    fc.Observability.Activity.Events.Dashboard,
+					Server:       fc.Observability.Activity.Events.Server,
+					Bridge:       fc.Observability.Activity.Events.Bridge,
+					Orchestrator: fc.Observability.Activity.Events.Orchestrator,
+					Scheduler:    fc.Observability.Activity.Events.Scheduler,
+					MCP:          fc.Observability.Activity.Events.MCP,
+					Other:        fc.Observability.Activity.Events.Other,
+				},
 			},
 		},
 		Sessions: sessionsFileConfigJSON{
@@ -474,6 +511,13 @@ func FileConfigFromRuntime(cfg *RuntimeConfig) FileConfig {
 	activityEnabled := cfg.Observability.Activity.Enabled
 	activitySessionIdleSec := cfg.Observability.Activity.SessionIdleSec
 	activityRetentionDays := cfg.Observability.Activity.RetentionDays
+	activityDashboardEvents := cfg.Observability.Activity.Events.Dashboard
+	activityServerEvents := cfg.Observability.Activity.Events.Server
+	activityBridgeEvents := cfg.Observability.Activity.Events.Bridge
+	activityOrchestratorEvents := cfg.Observability.Activity.Events.Orchestrator
+	activitySchedulerEvents := cfg.Observability.Activity.Events.Scheduler
+	activityMCPEvents := cfg.Observability.Activity.Events.MCP
+	activityOtherEvents := cfg.Observability.Activity.Events.Other
 	dashboardSessionPersist := cfg.Sessions.Dashboard.Persist
 	dashboardSessionIdleSec := int(cfg.Sessions.Dashboard.IdleTimeout / time.Second)
 	dashboardSessionMaxLifetimeSec := int(cfg.Sessions.Dashboard.MaxLifetime / time.Second)
@@ -575,6 +619,15 @@ func FileConfigFromRuntime(cfg *RuntimeConfig) FileConfig {
 				Enabled:        &activityEnabled,
 				SessionIdleSec: &activitySessionIdleSec,
 				RetentionDays:  &activityRetentionDays,
+				Events: ActivityEventsFileConfig{
+					Dashboard:    &activityDashboardEvents,
+					Server:       &activityServerEvents,
+					Bridge:       &activityBridgeEvents,
+					Orchestrator: &activityOrchestratorEvents,
+					Scheduler:    &activitySchedulerEvents,
+					MCP:          &activityMCPEvents,
+					Other:        &activityOtherEvents,
+				},
 			},
 		},
 		Sessions: SessionsFileConfig{

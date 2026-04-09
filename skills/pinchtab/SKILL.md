@@ -41,8 +41,6 @@ When multiple agents share one PinchTab server, always give each agent a stable 
 
 That identity is recorded as `agentId` in activity events and powers:
 
-- the dashboard Agents view
-- `GET /api/activity?agentId=<agent-id>`
 - scheduler task attribution when work is dispatched on behalf of an agent
 
 If you are switching between unrelated browser tasks, do not reuse the same agent ID unless you intentionally want one combined activity trail.
@@ -258,7 +256,16 @@ curl -X POST http://localhost:9868/action \
 
 If the server is exposed beyond localhost, require a token and use a dedicated automation profile. See [TRUST.md](./TRUST.md).
 
-**Agent sessions**: Instead of sharing the server bearer token, each agent can get its own revocable session token. Set `PINCHTAB_SESSION=ses_...` or send `Authorization: Session ses_...`. Create via `POST /api/sessions` with `{"agentId":"...", "label":"..."}`. Sessions have idle timeout (default 12h) and max lifetime (default 24h). Manage with rotate (`POST /api/sessions/{id}/rotate`) and revoke (`POST /api/sessions/{id}/revoke`).
+**Agent sessions**: Instead of sharing the server bearer token, each agent can get its own revocable session token. Set `PINCHTAB_SESSION=ses_...` or send `Authorization: Session ses_...`. Sessions have idle timeout (default 30m) and max lifetime (default 24h). Use them only in trusted, controlled environments. They are not a multi-tenant isolation boundary, and session-authenticated callers are still intended for operator-controlled automation only.
+
+```bash
+pinchtab session create --agent-id <agent-id> [--label <label>]  # Create; prints sessionToken
+pinchtab session list                                              # List all sessions
+pinchtab session info                                              # Show session for current token
+pinchtab session revoke <session-id>                              # Revoke session
+```
+
+HTTP equivalents: `POST /sessions`, `GET /sessions`, `GET /sessions/me`, `POST /sessions/{id}/revoke`.
 
 ## Essential Commands
 

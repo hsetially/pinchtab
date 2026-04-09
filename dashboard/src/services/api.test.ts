@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createProfile, fetchProfiles, probeBackendAuth } from "./api";
+import {
+  createProfile,
+  fetchProfiles,
+  handleRealtimeAuthFailure,
+  probeBackendAuth,
+} from "./api";
+import { SERVER_UNREACHABLE_EVENT } from "./auth";
 
 describe("api request headers", () => {
   beforeEach(() => {
@@ -57,5 +63,29 @@ describe("api request headers", () => {
     expect(new Headers(init.headers).get("X-PinchTab-Source")).toBe(
       "dashboard",
     );
+  });
+
+  it("dispatches a server-unreachable event when requests lose transport", async () => {
+    const handler = vi.fn();
+    const fetchMock = vi.fn().mockRejectedValue(new TypeError("NetworkError"));
+    vi.stubGlobal("fetch", fetchMock);
+    window.addEventListener(SERVER_UNREACHABLE_EVENT, handler);
+
+    await expect(fetchProfiles()).rejects.toThrow("NetworkError");
+
+    expect(handler).toHaveBeenCalledTimes(1);
+    window.removeEventListener(SERVER_UNREACHABLE_EVENT, handler);
+  });
+
+  it("dispatches a server-unreachable event when realtime auth probing fails", async () => {
+    const handler = vi.fn();
+    const fetchMock = vi.fn().mockRejectedValue(new TypeError("NetworkError"));
+    vi.stubGlobal("fetch", fetchMock);
+    window.addEventListener(SERVER_UNREACHABLE_EVENT, handler);
+
+    await handleRealtimeAuthFailure();
+
+    expect(handler).toHaveBeenCalledTimes(1);
+    window.removeEventListener(SERVER_UNREACHABLE_EVENT, handler);
   });
 });

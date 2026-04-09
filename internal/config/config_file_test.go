@@ -91,6 +91,15 @@ func TestDefaultFileConfig(t *testing.T) {
 	if fc.Observability.Activity.StateDir != "" {
 		t.Errorf("DefaultFileConfig.Observability.Activity.StateDir = %q, want empty string", fc.Observability.Activity.StateDir)
 	}
+	if fc.Observability.Activity.Events.Dashboard == nil || *fc.Observability.Activity.Events.Dashboard {
+		t.Errorf("DefaultFileConfig.Observability.Activity.Events.Dashboard = %v, want explicit false", formatBoolPtr(fc.Observability.Activity.Events.Dashboard))
+	}
+	if fc.Observability.Activity.Events.Server == nil || *fc.Observability.Activity.Events.Server {
+		t.Errorf("DefaultFileConfig.Observability.Activity.Events.Server = %v, want explicit false", formatBoolPtr(fc.Observability.Activity.Events.Server))
+	}
+	if fc.Observability.Activity.Events.Bridge == nil || *fc.Observability.Activity.Events.Bridge {
+		t.Errorf("DefaultFileConfig.Observability.Activity.Events.Bridge = %v, want explicit false", formatBoolPtr(fc.Observability.Activity.Events.Bridge))
+	}
 }
 
 // TestIsLegacyConfig tests the format detection logic.
@@ -240,6 +249,12 @@ func TestDefaultFileConfigJSON(t *testing.T) {
 	}
 	if parsed.Observability.Activity.StateDir != "" {
 		t.Errorf("round-trip Observability.Activity.StateDir = %q, want empty string", parsed.Observability.Activity.StateDir)
+	}
+	if parsed.Observability.Activity.Events.Dashboard == nil || *parsed.Observability.Activity.Events.Dashboard {
+		t.Errorf("round-trip Observability.Activity.Events.Dashboard = %v, want explicit false", formatBoolPtr(parsed.Observability.Activity.Events.Dashboard))
+	}
+	if parsed.Observability.Activity.Events.Server == nil || *parsed.Observability.Activity.Events.Server {
+		t.Errorf("round-trip Observability.Activity.Events.Server = %v, want explicit false", formatBoolPtr(parsed.Observability.Activity.Events.Server))
 	}
 	if !parsed.Security.IDPI.Enabled {
 		t.Errorf("round-trip Security.IDPI.Enabled = %v, want true", parsed.Security.IDPI.Enabled)

@@ -253,7 +253,16 @@ Current nested file-config shape:
     "activity": {
       "enabled": true,
       "sessionIdleSec": 1800,
-      "retentionDays": 1
+      "retentionDays": 1,
+      "events": {
+        "dashboard": false,
+        "server": false,
+        "bridge": false,
+        "orchestrator": false,
+        "scheduler": false,
+        "mcp": false,
+        "other": false
+      }
     }
   }
 }
@@ -299,7 +308,7 @@ For Linux container compatibility, use the runtime-managed path instead of `brow
 | `multiInstance` | Orchestrator strategy, allocation, port range, and restart policy |
 | `timeouts` | Action, navigation, shutdown, and navigation wait delays |
 | `scheduler` | Optional task queue |
-| `observability` | Activity logging and retention |
+| `observability` | Activity logging, source selection, and retention |
 
 ## `config get` And `config set` Support
 
@@ -312,8 +321,9 @@ For Linux container compatibility, use the runtime-managed path instead of `brow
 - `profiles`
 - `multiInstance`
 - `timeouts`
+- `observability`
 
-They do not expose every field in those sections, and they do not support `scheduler.*` or `observability.*`.
+They do not expose every field in those sections, and they do not support `scheduler.*`.
 
 Use `pinchtab config patch` or edit `config.json` directly for fields such as:
 
@@ -325,7 +335,7 @@ Use `pinchtab config patch` or edit `config.json` directly for fields such as:
 - `security.idpi.scanTimeoutSec`
 - `security.idpi.shieldThreshold`
 - `scheduler.*`
-- `observability.*`
+- `observability.activity.events.*`
 
 ## Common Examples
 

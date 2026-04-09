@@ -139,6 +139,39 @@ action_human_type_selector "#name" " Jr."
 
 end_test
 
+# ─────────────────────────────────────────────────────────────────
+start_test "fill: textarea by ref"
+
+navigate_fixture "text-fields.html"
+fresh_snapshot
+
+require_ref "textbox" "Notes" NOTES_REF && {
+  pt_post /action -d "{\"kind\":\"fill\",\"ref\":\"${NOTES_REF}\",\"text\":\"textarea fill test\"}"
+  assert_ok "fill textarea by ref"
+
+  pt_post /evaluate -d '{"expression":"document.querySelector(\"#notes\").value"}'
+  assert_ok "evaluate textarea after fill"
+  assert_json_eq "$RESULT" '.result' 'textarea fill test' "textarea value persisted after fill"
+}
+
+end_test
+
+# ─────────────────────────────────────────────────────────────────
+start_test "type: textarea by ref"
+
+navigate_fixture "text-fields.html"
+fresh_snapshot
+
+require_ref "textbox" "Notes" NOTES_REF && {
+  action_type "$NOTES_REF" "textarea type test"
+
+  pt_post /evaluate -d '{"expression":"document.querySelector(\"#notes\").value"}'
+  assert_ok "evaluate textarea after type"
+  assert_json_eq "$RESULT" '.result' 'textarea type test' "textarea value persisted after type"
+}
+
+end_test
+
 # Regression test for GitHub issue #236: press action was typing key names
 # as literal text instead of dispatching keyboard events.
 

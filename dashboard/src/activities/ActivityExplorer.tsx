@@ -13,6 +13,20 @@ import {
 } from "./helpers";
 import type { ActivityFilters, DashboardActivityEvent } from "./types";
 
+const ANONYMOUS_AGENT_ID = "anonymous";
+
+function normalizeDashboardActivityEvent(
+  event: DashboardActivityEvent,
+): DashboardActivityEvent {
+  const source = (event.source || "").trim().toLowerCase();
+  const agentId = (event.agentId || "").trim();
+  return {
+    ...event,
+    source,
+    agentId: source === "client" && !agentId ? ANONYMOUS_AGENT_ID : agentId,
+  };
+}
+
 interface Props {
   initialFilters?: Partial<ActivityFilters>;
   lockedFilters?: Partial<ActivityFilters>;
@@ -47,13 +61,32 @@ export default function ActivityExplorer({
     () => applyLockedFilters(deferredFilters, lockedFilters),
     [deferredFilters, lockedFilters],
   );
-  const query = useMemo(
-    () => buildActivityQuery(effectiveFilters),
-    [effectiveFilters],
-  );
+  const query = useMemo(() => {
+    const q = buildActivityQuery(effectiveFilters);
+    if (embedded) {
+      q.source = "client";
+    }
+    return q;
+  }, [effectiveFilters, embedded]);
   const queryKey = JSON.stringify(query);
   const stableQuery = useRef(query);
   stableQuery.current = query;
+
+  const [sessions, setSessions] = useState<api.Session[]>([]);
+
+  useEffect(() => {
+    if (!embedded) return;
+    let cancelled = false;
+    void api
+      .fetchSessions()
+      .then((s) => {
+        if (!cancelled) setSessions(s);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [embedded]);
 
   useEffect(() => {
     setFilters((current) => {
@@ -93,7 +126,7 @@ export default function ActivityExplorer({
       try {
         const response = await fetchActivity(stableQuery.current);
         if (cancelled) return;
-        setEvents(response.events);
+        setEvents(response.events.map(normalizeDashboardActivityEvent));
         setCount(response.count);
       } catch (err) {
         if (cancelled) return;
@@ -149,9 +182,30 @@ export default function ActivityExplorer({
 
   const summary = useMemo(
     () =>
-      `${count} events • ${stats.agents} agents • ${stats.tabs} tabs • ${stats.instances} instances`,
-    [count, stats.agents, stats.instances, stats.tabs],
+      embedded
+        ? `${count} events • ${stats.agents} agents`
+        : `${count} events • ${stats.agents} agents • ${stats.tabs} tabs • ${stats.instances} instances`,
+    [count, stats.agents, stats.instances, stats.tabs, embedded],
   );
+
+  const agentOptions = useMemo(() => {
+    const ids = new Set<string>();
+    for (const e of events) {
+      const agentId = (e.agentId || "").trim();
+      if (agentId) ids.add(agentId);
+    }
+    return Array.from(ids).sort();
+  }, [events]);
+
+  const sessionOptions = useMemo(() => {
+    if (!effectiveFilters.agentId) return [];
+    return sessions
+      .filter((s) => s.agentId === effectiveFilters.agentId)
+      .sort(
+        (a, b) =>
+          new Date(b.lastSeenAt).getTime() - new Date(a.lastSeenAt).getTime(),
+      );
+  }, [sessions, effectiveFilters.agentId]);
 
   const updateFilter = (key: keyof ActivityFilters, value: string) => {
     if (lockedFilters?.[key] !== undefined) {
@@ -214,6 +268,7 @@ export default function ActivityExplorer({
             profileOptions={profiles}
             instanceOptions={filteredInstances}
             tabOptions={visibleTabs}
+            agentOptions={agentOptions}
             loading={loading}
             onClear={clearFilters}
             onRefresh={() => setFilters((current) => ({ ...current }))}
@@ -224,11 +279,55 @@ export default function ActivityExplorer({
         </aside>
       )}
 
+      {embedded && agentOptions.length > 0 && (
+        <div className="flex items-center gap-2 border-b border-border-subtle px-4 py-1.5">
+          <label className="flex items-center gap-1.5 text-xs text-text-muted">
+            Agent
+            <select
+              value={effectiveFilters.agentId}
+              onChange={(e) => {
+                updateFilter("agentId", e.target.value);
+                if (!e.target.value) updateFilter("sessionId", "");
+              }}
+              className="rounded border border-border-subtle bg-bg-surface px-2 py-1 text-xs text-text-primary"
+            >
+              <option value="">All</option>
+              {agentOptions.map((id) => (
+                <option key={id} value={id}>
+                  {id}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex items-center gap-1.5 text-xs text-text-muted">
+            Session
+            <select
+              value={effectiveFilters.sessionId}
+              onChange={(e) => updateFilter("sessionId", e.target.value)}
+              disabled={!effectiveFilters.agentId}
+              className="rounded border border-border-subtle bg-bg-surface px-2 py-1 text-xs text-text-primary disabled:opacity-40"
+            >
+              <option value="">All</option>
+              {sessionOptions.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.label || s.id}
+                </option>
+              ))}
+            </select>
+          </label>
+          <span className="ml-auto text-[0.68rem] text-text-muted">
+            {summary}
+          </span>
+        </div>
+      )}
+
       <ActivityTimeline
         events={events}
         loading={loading}
         error={error}
         summary={summary}
+        embedded={embedded}
+        showTab={!embedded}
         onFilterChange={updateFilter}
       />
     </div>

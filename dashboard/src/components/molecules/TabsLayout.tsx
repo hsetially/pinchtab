@@ -25,7 +25,7 @@ export default function TabsLayout<T extends string>({
 }: Props<T>) {
   return (
     <div className={`flex h-full flex-col overflow-hidden ${className}`}>
-      <div className="border-b border-border-subtle px-4 py-2">
+      <div className="border-b border-border-subtle px-4 py-3">
         <div className="flex items-center gap-1">
           {tabs.map((tab) => (
             <button

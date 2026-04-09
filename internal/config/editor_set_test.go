@@ -20,6 +20,12 @@ func TestSetConfigValue_ServerFields(t *testing.T) {
 		{"sessions.dashboard.maxLifetimeSec", "604800", func(fc *FileConfig) bool {
 			return fc.Sessions.Dashboard.MaxLifetimeSec != nil && *fc.Sessions.Dashboard.MaxLifetimeSec == 604800
 		}, false},
+		{"observability.activity.enabled", "true", func(fc *FileConfig) bool {
+			return fc.Observability.Activity.Enabled != nil && *fc.Observability.Activity.Enabled
+		}, false},
+		{"observability.activity.events.dashboard", "true", func(fc *FileConfig) bool {
+			return fc.Observability.Activity.Events.Dashboard != nil && *fc.Observability.Activity.Events.Dashboard
+		}, false},
 		{"server.unknown", "value", nil, true},
 	}
 

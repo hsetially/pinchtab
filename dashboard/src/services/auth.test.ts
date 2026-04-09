@@ -2,8 +2,10 @@ import { describe, expect, it, vi } from "vitest";
 import {
   AUTH_REQUIRED_EVENT,
   AUTH_STATE_CHANGED_EVENT,
+  SERVER_UNREACHABLE_EVENT,
   dispatchAuthRequired,
   dispatchAuthStateChanged,
+  dispatchServerUnreachable,
   sameOriginUrl,
 } from "./auth";
 
@@ -28,6 +30,16 @@ describe("auth helpers", () => {
 
     expect(handler).toHaveBeenCalledTimes(1);
     window.removeEventListener(AUTH_STATE_CHANGED_EVENT, handler);
+  });
+
+  it("dispatches the server-unreachable event", () => {
+    const handler = vi.fn();
+    window.addEventListener(SERVER_UNREACHABLE_EVENT, handler);
+
+    dispatchServerUnreachable();
+
+    expect(handler).toHaveBeenCalledTimes(1);
+    window.removeEventListener(SERVER_UNREACHABLE_EVENT, handler);
   });
 
   it("keeps dashboard URLs same-origin without appending auth state", () => {

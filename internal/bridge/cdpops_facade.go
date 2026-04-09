@@ -83,6 +83,10 @@ func SelectByNodeID(ctx context.Context, nodeID int64, value string) error {
 	return bridgecdpops.SelectByNodeID(ctx, nodeID, value)
 }
 
+func ReadInputValue(ctx context.Context, nodeID int64) (string, error) {
+	return bridgecdpops.ReadInputValue(ctx, nodeID)
+}
+
 func ScrollByNodeID(ctx context.Context, nodeID int64) error {
 	return bridgecdpops.ScrollByNodeID(ctx, nodeID)
 }

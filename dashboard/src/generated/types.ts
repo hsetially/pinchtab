@@ -89,7 +89,6 @@ export interface ActivityLogEvent {
   source: string;
   requestId?: string;
   sessionId?: string;
-  actorId?: string;
   agentId?: string;
   method: string;
   path: string;

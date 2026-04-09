@@ -137,6 +137,16 @@ curl -H "Authorization: Bearer <token>" http://127.0.0.1:9867/health
 
 CLI commands use the configured local server settings by default, and `PINCHTAB_TOKEN` can override the token for a single shell session.
 
+## Agent Sessions
+
+Agent sessions are reduced-distribution credentials for trusted automation, not a sandbox for untrusted clients.
+
+- session-authenticated callers are blocked from dashboard/admin endpoint families such as config, session management, profile management, instance management, dashboard agent listings, and cache controls
+- session records can optionally carry explicit grants that narrow access further
+- sessions without explicit grants can still use the normal non-admin automation API by default
+
+That means agent sessions are appropriate for controlled environments where the caller is already trusted to drive browser automation but should not receive the full dashboard bearer token. They are not sufficient for hostile multi-tenant sharing or public internet exposure. For that kind of isolation, run separate PinchTab instances behind separate network and credential boundaries.
+
 ## Sensitive Endpoints
 
 Some endpoint families expose much more power than normal navigation and inspection. PinchTab keeps them disabled by default:
@@ -285,6 +295,6 @@ For automated agents, use **agent sessions** instead of sharing the server beare
 - Has configurable idle timeout and max lifetime
 - Never exposes the server bearer token to agents
 
-**Important:** Agent sessions are designed for trusted environments. The session management API (`/api/sessions`) has no per-agent authorization — any bearer-authenticated caller can manage all sessions. Do not expose these endpoints to untrusted networks.
+**Important:** Agent sessions are designed for trusted environments. The session management API (`/sessions`) has no per-agent authorization — any bearer-authenticated caller can manage all sessions. Do not expose these endpoints to untrusted networks.
 
 See [Reference: Agent Sessions](../reference/sessions.md) for configuration and API details.

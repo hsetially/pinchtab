@@ -6,7 +6,7 @@ Base URL for all examples: `http://localhost:9867`
 
 ## Agent Attribution
 
-If an agent is calling the HTTP API directly, include `X-Agent-Id: <agent-id>` on the requests that should show up under that agent in dashboard and activity views.
+If an agent is calling the HTTP API directly, include `X-Agent-Id: <agent-id>` on the requests that should stay attributable to that agent.
 
 Example:
 
@@ -15,15 +15,12 @@ curl -X POST /navigate \
   -H 'X-Agent-Id: agent-crawl-01' \
   -H 'Content-Type: application/json' \
   -d '{"url": "https://pinchtab.com"}'
-
-curl '/api/activity?agentId=agent-crawl-01'
 ```
 
 Notes:
 
 - CLI users should prefer `pinchtab --agent-id <agent-id> ...` instead of setting the header manually
 - scheduler-submitted tasks reuse their `agentId` as `X-Agent-Id` when the task is executed
-- bare `GET /api/activity` returns the primary activity feed; named internal sources such as `dashboard` or `orchestrator` are queried with `?source=<name>`
 
 ## Navigate
 
@@ -446,21 +443,10 @@ curl -X POST /fingerprint/rotate -H 'Content-Type: application/json' \
 curl /health
 ```
 
-## Agent Sessions
+## Session Auth
+
+If the user already gives you an agent session token, send it as:
 
 ```bash
-# Create agent session (requires bearer/cookie auth)
-curl -X POST /api/sessions -d '{"agentId":"my-agent","label":"dev"}'
-
-# List sessions
-curl /api/sessions
-
-# Get current session (requires Session auth)
-curl -H "Authorization: Session ses_..." /api/sessions/me
-
-# Rotate token
-curl -X POST /api/sessions/{id}/rotate
-
-# Revoke session
-curl -X POST /api/sessions/{id}/revoke
+curl -H "Authorization: Session ses_..." /health
 ```

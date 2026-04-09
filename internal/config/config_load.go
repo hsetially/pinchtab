@@ -13,7 +13,7 @@ func Load() *RuntimeConfig {
 	cfg := &RuntimeConfig{
 		// Server defaults
 		Bind:              "127.0.0.1",
-		Port:              "9867",
+		Port:              defaultPort,
 		InstancePortStart: 9868,
 		InstancePortEnd:   9968,
 		Token:             os.Getenv("PINCHTAB_TOKEN"),
@@ -170,6 +170,11 @@ func Load() *RuntimeConfig {
 	applyFileConfig(cfg, fc)
 	finalizeProfileConfig(cfg)
 
+	if cfg.Port == "" {
+		slog.Error("server port is not configured — set server.port in config.json")
+		os.Exit(1)
+	}
+
 	return cfg
 }
 
@@ -276,6 +281,27 @@ func applyFileConfig(cfg *RuntimeConfig, fc *FileConfig) {
 	}
 	if fc.Observability.Activity.RetentionDays != nil {
 		cfg.Observability.Activity.RetentionDays = *fc.Observability.Activity.RetentionDays
+	}
+	if fc.Observability.Activity.Events.Dashboard != nil {
+		cfg.Observability.Activity.Events.Dashboard = *fc.Observability.Activity.Events.Dashboard
+	}
+	if fc.Observability.Activity.Events.Server != nil {
+		cfg.Observability.Activity.Events.Server = *fc.Observability.Activity.Events.Server
+	}
+	if fc.Observability.Activity.Events.Bridge != nil {
+		cfg.Observability.Activity.Events.Bridge = *fc.Observability.Activity.Events.Bridge
+	}
+	if fc.Observability.Activity.Events.Orchestrator != nil {
+		cfg.Observability.Activity.Events.Orchestrator = *fc.Observability.Activity.Events.Orchestrator
+	}
+	if fc.Observability.Activity.Events.Scheduler != nil {
+		cfg.Observability.Activity.Events.Scheduler = *fc.Observability.Activity.Events.Scheduler
+	}
+	if fc.Observability.Activity.Events.MCP != nil {
+		cfg.Observability.Activity.Events.MCP = *fc.Observability.Activity.Events.MCP
+	}
+	if fc.Observability.Activity.Events.Other != nil {
+		cfg.Observability.Activity.Events.Other = *fc.Observability.Activity.Events.Other
 	}
 	if fc.Sessions.Dashboard.Persist != nil {
 		cfg.Sessions.Dashboard.Persist = *fc.Sessions.Dashboard.Persist

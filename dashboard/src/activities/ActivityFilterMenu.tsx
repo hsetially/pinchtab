@@ -9,6 +9,7 @@ interface Props {
   profileOptions: Profile[];
   instanceOptions: Instance[];
   tabOptions: InstanceTab[];
+  agentOptions?: string[];
   loading: boolean;
   showAgentFilter?: boolean;
   onClear: () => void;
@@ -36,7 +37,7 @@ function FilterSelect({
         aria-label={label}
         value={value}
         onChange={onChange}
-        className="rounded-sm border border-border-subtle bg-[rgb(var(--brand-surface-code-rgb)/0.72)] px-3 py-2 text-sm text-text-primary transition-all duration-150 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+        className="appearance-none rounded-sm border border-border-subtle bg-[rgb(var(--brand-surface-code-rgb)/0.72)] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22%236b7280%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M5.23%207.21a.75.75%200%20011.06.02L10%2011.168l3.71-3.938a.75.75%200%20111.08%201.04l-4.25%204.5a.75.75%200%2001-1.08%200l-4.25-4.5a.75.75%200%2001.02-1.06z%22%20clip-rule%3D%22evenodd%22%2F%3E%3C%2Fsvg%3E')] bg-[length:1.25rem_1.25rem] bg-[position:right_0.5rem_center] bg-no-repeat pl-3 pr-8 py-2 text-sm text-text-primary transition-all duration-150 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
       >
         {options.map((option) => (
           <option key={option.value || "all"} value={option.value}>
@@ -53,6 +54,7 @@ export default function ActivityFilterMenu({
   profileOptions,
   instanceOptions,
   tabOptions,
+  agentOptions = [],
   loading,
   showAgentFilter = true,
   onClear,
@@ -95,10 +97,13 @@ export default function ActivityFilterMenu({
 
         <div className="space-y-3 border-t border-border-subtle pt-4">
           {showAgentFilter && (
-            <Input
+            <FilterSelect
               label="Agent"
-              placeholder="cli, mcp, custom"
               value={filters.agentId}
+              options={[
+                { value: "", label: "Any agent" },
+                ...agentOptions.map((id) => ({ value: id, label: id })),
+              ]}
               onChange={(event) =>
                 onFilterChange("agentId", event.target.value)
               }
@@ -148,14 +153,6 @@ export default function ActivityFilterMenu({
                 onChange={(event) => onInstanceChange(event.target.value)}
               />
               <Input
-                label="Session"
-                placeholder="session_xxx"
-                value={filters.sessionId}
-                onChange={(event) =>
-                  onFilterChange("sessionId", event.target.value)
-                }
-              />
-              <Input
                 label="Path prefix"
                 placeholder="/tabs/ or /instances/"
                 value={filters.pathPrefix}
@@ -201,7 +198,7 @@ export default function ActivityFilterMenu({
           loading={loading}
           className="flex-1"
         >
-          Refresh
+          Search
         </Button>
       </div>
     </>

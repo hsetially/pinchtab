@@ -79,7 +79,7 @@ describe("ActivityPage", () => {
       events: [
         {
           timestamp: now,
-          source: "cli",
+          source: "client",
           requestId: "req_123",
           agentId: "cli",
           instanceId: "inst_123",
@@ -106,12 +106,12 @@ describe("ActivityPage", () => {
       expect(fetchActivity).toHaveBeenCalled();
     });
 
-    expect(screen.getByText("/tabs/tab_123/action")).toBeInTheDocument();
-    expect(screen.getByText("agent:cli")).toBeInTheDocument();
+    expect(screen.getByText("Click on page")).toBeInTheDocument();
+    expect(screen.getByText("200")).toBeInTheDocument();
     expect(screen.getAllByText("tab:tab_123").length).toBeGreaterThan(0);
   });
 
-  it("defaults to the current running profile and tab", async () => {
+  it("starts unfiltered showing all client events", async () => {
     render(
       <MemoryRouter>
         <ActivityPage />
@@ -121,15 +121,20 @@ describe("ActivityPage", () => {
     await waitFor(() => {
       expect(fetchActivity).toHaveBeenCalledWith(
         expect.objectContaining({
-          profileName: "default",
-          instanceId: "inst_123",
-          tabId: "tab_123",
+          source: "client",
+          limit: 1000,
         }),
       );
     });
+
+    const query = vi.mocked(fetchActivity).mock.calls[0][0];
+    expect(query).not.toHaveProperty("profileName");
+    expect(query).not.toHaveProperty("instanceId");
+    expect(query).not.toHaveProperty("tabId");
+    expect(query).not.toHaveProperty("ageSec");
   });
 
-  it("clears back to default filters instead of reapplying landing context", async () => {
+  it("clears back to unfiltered state", async () => {
     render(
       <MemoryRouter>
         <ActivityPage />
@@ -137,33 +142,30 @@ describe("ActivityPage", () => {
     );
 
     await waitFor(() => {
-      expect(fetchActivity).toHaveBeenCalledWith(
-        expect.objectContaining({
-          profileName: "default",
-          instanceId: "inst_123",
-          tabId: "tab_123",
-        }),
+      expect(fetchActivity).toHaveBeenCalledTimes(1);
+    });
+
+    await userEvent.click(
+      screen.getByRole("button", { name: /advanced filters/i }),
+    );
+    await userEvent.selectOptions(
+      screen.getByLabelText("Instance"),
+      "inst_123",
+    );
+
+    await waitFor(() => {
+      expect(fetchActivity).toHaveBeenLastCalledWith(
+        expect.objectContaining({ instanceId: "inst_123" }),
       );
     });
 
     await userEvent.click(screen.getByRole("button", { name: "Clear" }));
 
     await waitFor(() => {
-      expect(fetchActivity).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          ageSec: 3600,
-          limit: 200,
-        }),
-      );
+      const lastQuery = vi.mocked(fetchActivity).mock.lastCall?.[0];
+      expect(lastQuery).not.toHaveProperty("instanceId");
+      expect(lastQuery).not.toHaveProperty("profileName");
     });
-
-    expect(vi.mocked(fetchActivity).mock.lastCall?.[0]).not.toEqual(
-      expect.objectContaining({
-        profileName: "default",
-        instanceId: "inst_123",
-        tabId: "tab_123",
-      }),
-    );
   });
 
   it("applies the tab filter from the dropdown filter panel", async () => {
@@ -215,6 +217,6 @@ describe("ActivityPage", () => {
     );
 
     expect(screen.getByLabelText("Instance")).toBeInTheDocument();
-    expect(screen.getByLabelText("Session")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Session")).not.toBeInTheDocument();
   });
 });

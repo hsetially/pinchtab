@@ -355,6 +355,29 @@ func (h *Handlers) HandleTab(w http.ResponseWriter, r *http.Request) {
 
 	switch req.Action {
 	case tabActionNew:
+		var target *validatedNavigateTarget
+		trustedCIDRs := parseCIDRs(h.Config.TrustedProxyCIDRs)
+		if req.URL != "" && req.URL != "about:blank" {
+			if err := validateNavigateURL(req.URL); err != nil {
+				httpx.Error(w, 400, err)
+				return
+			}
+			domainResult := h.IDPIGuard.CheckDomain(req.URL)
+			if domainResult.Blocked {
+				httpx.Error(w, http.StatusForbidden, fmt.Errorf("navigation blocked by IDPI: %s", domainResult.Reason))
+				return
+			}
+			if domainResult.Threat {
+				w.Header().Set("X-IDPI-Warning", domainResult.Reason)
+			}
+			var err error
+			target, err = validateNavigateTarget(req.URL, h.IDPIGuard.DomainAllowed(req.URL))
+			if err != nil {
+				httpx.Error(w, http.StatusForbidden, err)
+				return
+			}
+		}
+
 		// Create a blank tab first so the requested URL becomes the first
 		// real history entry.
 		newTabID, ctx, _, err := h.Bridge.CreateTab("")
@@ -366,7 +389,21 @@ func (h *Handlers) HandleTab(w http.ResponseWriter, r *http.Request) {
 		if req.URL != "" && req.URL != "about:blank" {
 			tCtx, tCancel := context.WithTimeout(ctx, h.Config.NavigateTimeout)
 			defer tCancel()
+			go httpx.CancelOnClientDone(r.Context(), tCancel)
+			navGuard, err := installNavigateRuntimeGuard(tCtx, tCancel, target, trustedCIDRs)
+			if err != nil {
+				_ = h.Bridge.CloseTab(newTabID)
+				httpx.Error(w, 500, fmt.Errorf("navigation guard: %w", err))
+				return
+			}
 			if err := bridge.NavigatePageWithRedirectLimit(tCtx, req.URL, h.Config.MaxRedirects); err != nil {
+				if navGuard != nil {
+					if blockedErr := navGuard.blocked(); blockedErr != nil {
+						_ = h.Bridge.CloseTab(newTabID)
+						httpx.Error(w, http.StatusForbidden, blockedErr)
+						return
+					}
+				}
 				_ = h.Bridge.CloseTab(newTabID)
 				code := 500
 				if errors.Is(err, bridge.ErrTooManyRedirects) {

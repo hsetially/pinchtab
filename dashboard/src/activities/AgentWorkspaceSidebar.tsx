@@ -18,6 +18,7 @@ interface AgentWorkspaceSidebarProps {
   profiles: Profile[];
   filteredInstances: Instance[];
   visibleTabs: InstanceTab[];
+  agentOptions?: string[];
   loading: boolean;
   onSidebarTabChange: (tab: WorkspaceTab) => void;
   onSelectAgent: (agentId: string, autoSessionId?: string) => void;
@@ -40,6 +41,7 @@ export default function AgentWorkspaceSidebar({
   profiles,
   filteredInstances,
   visibleTabs,
+  agentOptions,
   loading,
   onSidebarTabChange,
   onSelectAgent,
@@ -120,9 +122,7 @@ export default function AgentWorkspaceSidebar({
                   selected={activeAgentId === agent.id}
                   sessions={sessionsByAgent.get(agent.id) || []}
                   activeSessionId={filters.sessionId}
-                  onClick={(autoSessionId) =>
-                    onSelectAgent(agent.id, autoSessionId)
-                  }
+                  onClick={() => onSelectAgent(agent.id)}
                   onSelectSession={onSelectSession}
                 />
               ))}
@@ -135,6 +135,7 @@ export default function AgentWorkspaceSidebar({
           profileOptions={profiles}
           instanceOptions={filteredInstances}
           tabOptions={visibleTabs}
+          agentOptions={agentOptions}
           loading={loading}
           showAgentFilter={showAgentFilter}
           onClear={onClearFilters}

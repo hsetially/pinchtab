@@ -79,7 +79,6 @@ type ActivityLogEvent struct {
 	Source      string    `json:"source"`
 	RequestID   string    `json:"requestId,omitempty"`
 	SessionID   string    `json:"sessionId,omitempty"`
-	ActorID     string    `json:"actorId,omitempty"`
 	AgentID     string    `json:"agentId,omitempty"`
 	Method      string    `json:"method"`
 	Path        string    `json:"path"`

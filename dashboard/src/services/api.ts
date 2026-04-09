@@ -26,7 +26,11 @@ import {
   normalizeDashboardServerInfo,
   normalizeMonitoringSnapshot,
 } from "../types";
-import { dispatchAuthRequired, sameOriginUrl } from "./auth";
+import {
+  dispatchAuthRequired,
+  dispatchServerUnreachable,
+  sameOriginUrl,
+} from "./auth";
 
 const BASE = ""; // Uses proxy in dev
 const DASHBOARD_SOURCE_HEADER = "X-PinchTab-Source";
@@ -75,10 +79,16 @@ async function request<T>(
   options?: RequestInit,
   meta?: RequestMeta,
 ): Promise<T> {
-  const res = await fetch(BASE + url, {
-    ...withDashboardSource(options),
-    credentials: "same-origin",
-  });
+  let res: Response;
+  try {
+    res = await fetch(BASE + url, {
+      ...withDashboardSource(options),
+      credentials: "same-origin",
+    });
+  } catch (error) {
+    dispatchServerUnreachable();
+    throw error;
+  }
   if (!res.ok) {
     const err = await parseError(res);
     if (res.status === 401) {
@@ -94,10 +104,16 @@ async function requestText(
   options?: RequestInit,
   meta?: RequestMeta,
 ): Promise<string> {
-  const res = await fetch(BASE + url, {
-    ...withDashboardSource(options),
-    credentials: "same-origin",
-  });
+  let res: Response;
+  try {
+    res = await fetch(BASE + url, {
+      ...withDashboardSource(options),
+      credentials: "same-origin",
+    });
+  } catch (error) {
+    dispatchServerUnreachable();
+    throw error;
+  }
   if (!res.ok) {
     const err = await parseError(res);
     if (res.status === 401) {
@@ -113,10 +129,16 @@ async function requestBlob(
   options?: RequestInit,
   meta?: RequestMeta,
 ): Promise<Blob> {
-  const res = await fetch(BASE + url, {
-    ...withDashboardSource(options),
-    credentials: "same-origin",
-  });
+  let res: Response;
+  try {
+    res = await fetch(BASE + url, {
+      ...withDashboardSource(options),
+      credentials: "same-origin",
+    });
+  } catch (error) {
+    dispatchServerUnreachable();
+    throw error;
+  }
   if (!res.ok) {
     const err = await parseError(res);
     if (res.status === 401) {
@@ -226,6 +248,39 @@ export async function closeTab(tabId: string): Promise<void> {
   await request(`/tabs/${encodeURIComponent(tabId)}/close`, { method: "POST" });
 }
 
+export interface ConsoleLogEntry {
+  timestamp: string;
+  level: string;
+  message: string;
+  source?: string;
+}
+
+export interface ErrorLogEntry {
+  timestamp: string;
+  message: string;
+  type?: string;
+  url?: string;
+  line?: number;
+  column?: number;
+  stack?: string;
+}
+
+export async function fetchConsoleLogs(
+  tabId: string,
+): Promise<ConsoleLogEntry[]> {
+  const res = await request<{ console: ConsoleLogEntry[] }>(
+    `/console?tabId=${encodeURIComponent(tabId)}`,
+  );
+  return res.console || [];
+}
+
+export async function fetchErrorLogs(tabId: string): Promise<ErrorLogEntry[]> {
+  const res = await request<{ errors: ErrorLogEntry[] }>(
+    `/errors?tabId=${encodeURIComponent(tabId)}`,
+  );
+  return res.errors || [];
+}
+
 export async function navigateTab(
   tabId: string,
   url: string,
@@ -299,7 +354,7 @@ export interface Session {
 }
 
 export async function fetchSessions(): Promise<Session[]> {
-  return request<Session[]>("/api/sessions");
+  return request<Session[]>("/sessions");
 }
 
 export async function fetchAgent(
@@ -439,6 +494,15 @@ export interface SystemEvent {
   instance?: Instance;
 }
 
+export function activityEventSource(event: ActivityEvent): string {
+  const source = event.details?.source;
+  return typeof source === "string" ? source.trim().toLowerCase() : "";
+}
+
+export function isClientActivityEvent(event: ActivityEvent): boolean {
+  return activityEventSource(event) === "client";
+}
+
 export type EventHandler = {
   onSystem?: (event: SystemEvent) => void;
   onActivity?: (event: ActivityEvent) => void;
@@ -558,6 +622,6 @@ export async function handleRealtimeAuthFailure(): Promise<void> {
       dispatchAuthRequired("missing_token");
     }
   } catch {
-    // ignore transient network failures
+    dispatchServerUnreachable();
   }
 }

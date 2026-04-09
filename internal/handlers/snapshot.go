@@ -119,7 +119,7 @@ func (h *Handlers) HandleSnapshot(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	ctx, resolvedTabID, err := h.tabContext(r, tabID)
+	ctx, resolvedTabID, err := h.tabContextWithHeader(w, r, tabID)
 	if err != nil {
 		httpx.Error(w, 404, err)
 		return

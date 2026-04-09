@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/pinchtab/pinchtab/internal/activity"
 	"github.com/pinchtab/pinchtab/internal/agentsession"
 	"github.com/pinchtab/pinchtab/internal/authn"
 	"github.com/pinchtab/pinchtab/internal/httpx"
@@ -22,12 +23,14 @@ func NewAgentSessionAPI(store *agentsession.Store) *AgentSessionAPI {
 
 // RegisterHandlers registers agent session API routes.
 func (a *AgentSessionAPI) RegisterHandlers(mux *http.ServeMux) {
-	mux.HandleFunc("POST /api/sessions", a.handleCreate)
-	mux.HandleFunc("GET /api/sessions", a.handleList)
-	mux.HandleFunc("GET /api/sessions/me", a.handleMe)
-	mux.HandleFunc("GET /api/sessions/{id}", a.handleGet)
-	mux.HandleFunc("POST /api/sessions/{id}/rotate", a.handleRotate)
-	mux.HandleFunc("POST /api/sessions/{id}/revoke", a.handleRevoke)
+	if a == nil || a.store == nil || !a.store.Enabled() {
+		return
+	}
+	mux.HandleFunc("POST /sessions", a.handleCreate)
+	mux.HandleFunc("GET /sessions", a.handleList)
+	mux.HandleFunc("GET /sessions/me", a.handleMe)
+	mux.HandleFunc("GET /sessions/{id}", a.handleGet)
+	mux.HandleFunc("POST /sessions/{id}/revoke", a.handleRevoke)
 }
 
 func (a *AgentSessionAPI) handleCreate(w http.ResponseWriter, r *http.Request) {
@@ -51,6 +54,13 @@ func (a *AgentSessionAPI) handleCreate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sess, _ := a.store.Get(sessionID)
+
+	activity.EnrichRequest(r, activity.Update{
+		SessionID: sessionID,
+		AgentID:   sess.AgentID,
+		Action:    "sessions",
+	})
+
 	httpx.JSON(w, http.StatusCreated, map[string]any{
 		"id":           sessionID,
 		"agentId":      sess.AgentID,
@@ -83,7 +93,7 @@ func (a *AgentSessionAPI) handleGet(w http.ResponseWriter, r *http.Request) {
 func (a *AgentSessionAPI) handleMe(w http.ResponseWriter, r *http.Request) {
 	creds := authn.CredentialsFromRequest(r)
 	if creds.Method != authn.MethodSession {
-		httpx.ErrorCode(w, http.StatusBadRequest, "session_auth_required", "this endpoint requires session authentication", false, nil)
+		httpx.ErrorCode(w, http.StatusUnauthorized, "session_auth_required", "this endpoint requires session authentication", false, nil)
 		return
 	}
 	sess, ok := a.store.Authenticate(creds.Value)
@@ -94,24 +104,26 @@ func (a *AgentSessionAPI) handleMe(w http.ResponseWriter, r *http.Request) {
 	httpx.JSON(w, http.StatusOK, sess)
 }
 
-func (a *AgentSessionAPI) handleRotate(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("id")
-	newToken, err := a.store.Rotate(id)
-	if err != nil {
-		httpx.ErrorCode(w, http.StatusBadRequest, "rotate_failed", err.Error(), false, nil)
-		return
-	}
-	sess, _ := a.store.Get(id)
-	httpx.JSON(w, http.StatusOK, map[string]any{
-		"id":           sess.ID,
-		"agentId":      sess.AgentID,
-		"sessionToken": newToken,
-		"status":       sess.Status,
-	})
-}
-
 func (a *AgentSessionAPI) handleRevoke(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
+	creds := authn.CredentialsFromRequest(r)
+	switch creds.Method {
+	case authn.MethodSession:
+		sess, ok := a.store.Authenticate(creds.Value)
+		if !ok || sess == nil {
+			httpx.ErrorCode(w, http.StatusUnauthorized, "bad_session", "invalid or expired agent session", false, nil)
+			return
+		}
+		if sess.ID != id {
+			httpx.ErrorCode(w, http.StatusForbidden, "forbidden", "session callers may only revoke their own session", false, nil)
+			return
+		}
+	case authn.MethodHeader, authn.MethodCookie:
+		// Dashboard-authenticated callers may revoke any session.
+	default:
+		httpx.ErrorCode(w, http.StatusForbidden, "forbidden", "not allowed to revoke this session", false, nil)
+		return
+	}
 	if !a.store.Revoke(id) {
 		httpx.ErrorCode(w, http.StatusNotFound, "session_not_found", "agent session not found", false, nil)
 		return

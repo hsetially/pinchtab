@@ -352,6 +352,9 @@ func TestOrchestrator_Launch_DoesNotInjectSharedActivityStateDir(t *testing.T) {
 	if fc.Observability.Activity.StateDir != "" {
 		t.Fatalf("child Observability.Activity.StateDir = %q, want empty", fc.Observability.Activity.StateDir)
 	}
+	if fc.Observability.Activity.Enabled == nil || *fc.Observability.Activity.Enabled {
+		t.Fatalf("child Observability.Activity.Enabled = %v, want explicit false", fc.Observability.Activity.Enabled)
+	}
 	if got := envMap(runner.env)["PINCHTAB_INTERNAL_ACTIVITY_STATE_DIR"]; got != "" {
 		t.Fatalf("PINCHTAB_INTERNAL_ACTIVITY_STATE_DIR = %q, want empty", got)
 	}

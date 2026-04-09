@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pinchtab/pinchtab/internal/activity"
 	"github.com/pinchtab/pinchtab/internal/bridge"
 	"github.com/pinchtab/pinchtab/internal/engine"
 	"github.com/pinchtab/pinchtab/internal/httpx"
@@ -138,6 +139,7 @@ func (h *Handlers) HandleAction(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	h.recordResolvedTab(r, resolvedTabID)
+	w.Header().Set(activity.HeaderPTTabID, resolvedTabID)
 
 	// Allow custom timeout via query param (1-60 seconds)
 	actionTimeout := h.Config.ActionTimeout

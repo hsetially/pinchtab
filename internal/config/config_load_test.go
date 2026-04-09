@@ -103,6 +103,27 @@ func TestLoadConfigDefaults(t *testing.T) {
 	if cfg.Observability.Activity.RetentionDays != 1 {
 		t.Errorf("default Observability.Activity.RetentionDays = %d, want 1", cfg.Observability.Activity.RetentionDays)
 	}
+	if cfg.Observability.Activity.Events.Dashboard {
+		t.Errorf("default Observability.Activity.Events.Dashboard = %v, want false", cfg.Observability.Activity.Events.Dashboard)
+	}
+	if cfg.Observability.Activity.Events.Server {
+		t.Errorf("default Observability.Activity.Events.Server = %v, want false", cfg.Observability.Activity.Events.Server)
+	}
+	if cfg.Observability.Activity.Events.Bridge {
+		t.Errorf("default Observability.Activity.Events.Bridge = %v, want false", cfg.Observability.Activity.Events.Bridge)
+	}
+	if cfg.Observability.Activity.Events.Orchestrator {
+		t.Errorf("default Observability.Activity.Events.Orchestrator = %v, want false", cfg.Observability.Activity.Events.Orchestrator)
+	}
+	if cfg.Observability.Activity.Events.Scheduler {
+		t.Errorf("default Observability.Activity.Events.Scheduler = %v, want false", cfg.Observability.Activity.Events.Scheduler)
+	}
+	if cfg.Observability.Activity.Events.MCP {
+		t.Errorf("default Observability.Activity.Events.MCP = %v, want false", cfg.Observability.Activity.Events.MCP)
+	}
+	if cfg.Observability.Activity.Events.Other {
+		t.Errorf("default Observability.Activity.Events.Other = %v, want false", cfg.Observability.Activity.Events.Other)
+	}
 	if !cfg.Sessions.Dashboard.Persist {
 		t.Errorf("default Sessions.Dashboard.Persist = %v, want true", cfg.Sessions.Dashboard.Persist)
 	}
@@ -197,6 +218,58 @@ func TestConfigFileWithNestedValues(t *testing.T) {
 	}
 	if cfg.Strategy != "explicit" {
 		t.Errorf("config file Strategy = %v, want explicit", cfg.Strategy)
+	}
+}
+
+func TestLoadConfigActivityEvents(t *testing.T) {
+	clearConfigEnvVars(t)
+
+	tmpDir := t.TempDir()
+	configPath := filepath.Join(tmpDir, "config.json")
+	_ = os.Setenv("PINCHTAB_CONFIG", configPath)
+	defer func() {
+		_ = os.Unsetenv("PINCHTAB_CONFIG")
+	}()
+
+	if err := os.WriteFile(configPath, []byte(`{
+		"observability": {
+			"activity": {
+				"events": {
+					"dashboard": true,
+					"server": true,
+					"bridge": false,
+					"orchestrator": true,
+					"scheduler": true,
+					"mcp": false,
+					"other": true
+				}
+			}
+		}
+	}`), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg := Load()
+	if !cfg.Observability.Activity.Events.Dashboard {
+		t.Error("dashboard events should load as enabled")
+	}
+	if !cfg.Observability.Activity.Events.Server {
+		t.Error("server events should load as enabled")
+	}
+	if cfg.Observability.Activity.Events.Bridge {
+		t.Error("bridge events should load as disabled")
+	}
+	if !cfg.Observability.Activity.Events.Orchestrator {
+		t.Error("orchestrator events should load as enabled")
+	}
+	if !cfg.Observability.Activity.Events.Scheduler {
+		t.Error("scheduler events should load as enabled")
+	}
+	if cfg.Observability.Activity.Events.MCP {
+		t.Error("mcp events should load as disabled")
+	}
+	if !cfg.Observability.Activity.Events.Other {
+		t.Error("other events should load as enabled")
 	}
 }
 

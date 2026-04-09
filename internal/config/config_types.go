@@ -2,6 +2,8 @@ package config
 
 import "time"
 
+const defaultPort = "9867"
+
 // RuntimeConfig holds all runtime settings used throughout the application.
 // This is the single source of truth for configuration at runtime.
 type RuntimeConfig struct {
@@ -164,10 +166,21 @@ type ObservabilityConfig struct {
 }
 
 type ActivityConfig struct {
-	Enabled        bool   `json:"enabled,omitempty"`
-	SessionIdleSec int    `json:"sessionIdleSec,omitempty"`
-	RetentionDays  int    `json:"retentionDays,omitempty"`
-	StateDir       string `json:"stateDir,omitempty"`
+	Enabled        bool                 `json:"enabled,omitempty"`
+	SessionIdleSec int                  `json:"sessionIdleSec,omitempty"`
+	RetentionDays  int                  `json:"retentionDays,omitempty"`
+	StateDir       string               `json:"stateDir,omitempty"`
+	Events         ActivityEventsConfig `json:"events,omitempty"`
+}
+
+type ActivityEventsConfig struct {
+	Dashboard    bool `json:"dashboard,omitempty"`
+	Server       bool `json:"server,omitempty"`
+	Bridge       bool `json:"bridge,omitempty"`
+	Orchestrator bool `json:"orchestrator,omitempty"`
+	Scheduler    bool `json:"scheduler,omitempty"`
+	MCP          bool `json:"mcp,omitempty"`
+	Other        bool `json:"other,omitempty"`
 }
 
 // FileConfig is the persistent configuration written to disk.
@@ -313,10 +326,21 @@ type ObservabilityFileConfig struct {
 }
 
 type ActivityFileConfig struct {
-	Enabled        *bool  `json:"enabled,omitempty"`
-	SessionIdleSec *int   `json:"sessionIdleSec,omitempty"`
-	RetentionDays  *int   `json:"retentionDays,omitempty"`
-	StateDir       string `json:"stateDir,omitempty"`
+	Enabled        *bool                    `json:"enabled,omitempty"`
+	SessionIdleSec *int                     `json:"sessionIdleSec,omitempty"`
+	RetentionDays  *int                     `json:"retentionDays,omitempty"`
+	StateDir       string                   `json:"stateDir,omitempty"`
+	Events         ActivityEventsFileConfig `json:"events,omitempty"`
+}
+
+type ActivityEventsFileConfig struct {
+	Dashboard    *bool `json:"dashboard,omitempty"`
+	Server       *bool `json:"server,omitempty"`
+	Bridge       *bool `json:"bridge,omitempty"`
+	Orchestrator *bool `json:"orchestrator,omitempty"`
+	Scheduler    *bool `json:"scheduler,omitempty"`
+	MCP          *bool `json:"mcp,omitempty"`
+	Other        *bool `json:"other,omitempty"`
 }
 
 // AutoSolverFileConfig is the persistent configuration for the autosolver system.

@@ -331,56 +331,6 @@ export default function SettingsPage() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <div className="sticky top-0 z-10 border-b border-border-subtle bg-bg-surface/95 px-4 py-3 backdrop-blur">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <div className="dashboard-mono text-sm text-text-secondary">
-              Server Version: {serverInfo?.version || "Unknown version"}
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {restartRequired && (
-              <div className="rounded-sm border border-warning/25 bg-warning/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-warning">
-                Restart required
-              </div>
-            )}
-            <Button
-              variant="secondary"
-              onClick={handleReset}
-              disabled={!hasChanges || saving}
-            >
-              Reset
-            </Button>
-            <Button
-              variant="primary"
-              onClick={handleSave}
-              disabled={!hasChanges || saving || !backendConfig}
-            >
-              {saving ? "Saving..." : "Save"}
-            </Button>
-          </div>
-        </div>
-        {(error || notice || restartReasons.length > 0) && (
-          <div className="mt-3 flex flex-col gap-2">
-            {error && (
-              <div className="rounded-sm border border-destructive/35 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                {error}
-              </div>
-            )}
-            {notice && (
-              <div className="rounded-sm border border-primary/30 bg-primary/10 px-3 py-2 text-sm text-primary">
-                {notice}
-              </div>
-            )}
-            {restartRequired && restartReasons.length > 0 && (
-              <div className="rounded-sm border border-warning/25 bg-warning/10 px-3 py-2 text-sm text-warning">
-                Restart needed for: {restartReasons.join(", ")}.
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
       <Modal
         open={pendingElevatedAction !== null}
         onClose={closeElevationPrompt}
@@ -436,10 +386,13 @@ export default function SettingsPage() {
         </form>
       </Modal>
 
-      <div className="flex flex-1 flex-col gap-6 overflow-hidden p-4 lg:flex-row lg:p-6">
-        <aside className="flex w-full shrink-0 flex-col gap-4 overflow-y-auto lg:w-72">
+      <div className="flex flex-1 flex-col overflow-hidden lg:flex-row">
+        <aside className="flex w-full shrink-0 flex-col overflow-y-auto border-b border-border-subtle lg:w-72 lg:border-b-0 lg:border-r">
           <Card className="p-3">
-            <div className="dashboard-section-label mb-3">Sections</div>
+            <div className="dashboard-section-label">Settings</div>
+            <div className="mb-3 dashboard-mono text-xs text-text-muted">
+              Version: {serverInfo?.version || "dev"}
+            </div>
             <div className="flex flex-col gap-1.5">
               {sections.map((section) => (
                 <button
@@ -463,6 +416,47 @@ export default function SettingsPage() {
         </aside>
 
         <div className="flex-1 overflow-y-auto pr-1">
+          <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-border-subtle bg-bg-surface/95 p-3 backdrop-blur">
+            {restartRequired && (
+              <div className="rounded-sm border border-warning/25 bg-warning/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-warning">
+                Restart required
+              </div>
+            )}
+            <div className="flex-1" />
+            <Button
+              variant="secondary"
+              onClick={handleReset}
+              disabled={!hasChanges || saving}
+            >
+              Reset
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleSave}
+              disabled={!hasChanges || saving || !backendConfig}
+            >
+              {saving ? "Saving..." : "Save"}
+            </Button>
+          </div>
+          {(error || notice || restartReasons.length > 0) && (
+            <div className="flex flex-col gap-2 px-3 pb-3">
+              {error && (
+                <div className="rounded-sm border border-destructive/35 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                  {error}
+                </div>
+              )}
+              {notice && (
+                <div className="rounded-sm border border-primary/30 bg-primary/10 px-3 py-2 text-sm text-primary">
+                  {notice}
+                </div>
+              )}
+              {restartRequired && restartReasons.length > 0 && (
+                <div className="rounded-sm border border-warning/25 bg-warning/10 px-3 py-2 text-sm text-warning">
+                  Restart needed for: {restartReasons.join(", ")}.
+                </div>
+              )}
+            </div>
+          )}
           {loading || !backendConfig ? (
             <Card className="p-6">
               <div className="text-sm text-text-muted">Loading settings…</div>

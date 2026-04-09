@@ -34,7 +34,9 @@ type SessionState struct {
 
 // IsTransientURL returns true for URLs that should not be shown in the UI
 // or persisted to session state (about:blank, chrome://, etc.).
-func IsTransientURL(url string) bool {
+// serverPort is the pinchtab server port so that only pinchtab's own
+// dashboard URLs on localhost are filtered, not user-navigated localhost sites.
+func IsTransientURL(url, serverPort string) bool {
 	switch url {
 	case "about:blank", "chrome://newtab/", "chrome://new-tab-page/":
 		return true
@@ -43,7 +45,7 @@ func IsTransientURL(url string) bool {
 		strings.HasPrefix(url, "chrome-extension://") ||
 		strings.HasPrefix(url, "devtools://") ||
 		strings.HasPrefix(url, "file://") ||
-		strings.Contains(url, "localhost:")
+		(serverPort != "" && strings.Contains(url, "localhost:"+serverPort))
 }
 
 func safeURLHostForLog(raw string) string {
@@ -135,7 +137,7 @@ func (b *Bridge) SaveState() {
 	tabs := make([]TabState, 0, len(targets))
 	seen := make(map[string]bool, len(targets))
 	for _, t := range targets {
-		if t.URL == "" || IsTransientURL(t.URL) {
+		if t.URL == "" || IsTransientURL(t.URL, b.Config.Port) {
 			continue
 		}
 		if seen[t.URL] {

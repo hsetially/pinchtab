@@ -378,6 +378,8 @@ func (o *Orchestrator) writeChildConfig(port string, cdpPort int, profilePath, i
 	fc := config.FileConfigFromRuntime(o.runtimeCfg)
 	fc.Server.Port = port
 	fc.Server.StateDir = instanceStateDir
+	activityEnabled := false
+	fc.Observability.Activity.Enabled = &activityEnabled
 	fc.Browser.ChromeDebugPort = intPtr(cdpPort)
 	fc.Profiles.BaseDir = filepath.Dir(profilePath)
 	fc.Profiles.DefaultProfile = filepath.Base(profilePath)
