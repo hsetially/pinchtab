@@ -111,8 +111,19 @@ func AuthMiddlewareWithSessions(cfg *config.RuntimeConfig, sessions *authn.Sessi
 				httpx.ErrorCode(w, 401, "session_auth_unavailable", "agent session authentication is not enabled", false, nil)
 				return
 			}
-			sess, ok := agentSessions.Authenticate(creds.Value)
+			sess, ok := agentSessions.AuthenticateWithoutTouch(creds.Value)
 			if !ok || sess == nil {
+				w.Header().Set("WWW-Authenticate", `Session realm="pinchtab", error="bad_session"`)
+				httpx.ErrorCode(w, 401, "bad_session", "invalid or expired agent session", false, nil)
+				return
+			}
+			if !sessionRequestAllowed(r, sess) {
+				httpx.ErrorCode(w, http.StatusForbidden, "session_scope_forbidden", "agent session is not allowed to access this endpoint", false, map[string]any{
+					"safeControlledEnvironmentOnly": true,
+				})
+				return
+			}
+			if !agentSessions.Touch(sess.ID) {
 				w.Header().Set("WWW-Authenticate", `Session realm="pinchtab", error="bad_session"`)
 				httpx.ErrorCode(w, 401, "bad_session", "invalid or expired agent session", false, nil)
 				return
@@ -124,12 +135,6 @@ func AuthMiddlewareWithSessions(cfg *config.RuntimeConfig, sessions *authn.Sessi
 				AgentID:   sess.AgentID,
 				SessionID: sess.ID,
 			})
-			if !sessionRequestAllowed(r, sess) {
-				httpx.ErrorCode(w, http.StatusForbidden, "session_scope_forbidden", "agent session is not allowed to access this endpoint", false, map[string]any{
-					"safeControlledEnvironmentOnly": true,
-				})
-				return
-			}
 		case authn.MethodHeader:
 			if subtle.ConstantTimeCompare([]byte(creds.Value), []byte(token)) != 1 {
 				authn.ClearSessionCookie(w, r, cfg != nil && cfg.TrustProxyHeaders, cookieSecureSetting(cfg))

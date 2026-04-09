@@ -109,6 +109,57 @@ func TestIdleTimeoutReset(t *testing.T) {
 	}
 }
 
+func TestAuthenticateWithoutTouchDoesNotResetIdleTimeout(t *testing.T) {
+	s := NewStore(Config{Enabled: true, MaxLifetime: 24 * time.Hour, IdleTimeout: 10 * time.Minute})
+	now := time.Now()
+	s.now = func() time.Time { return now }
+
+	id, token, _ := s.Create("agent-1", "")
+	sess, ok := s.Get(id)
+	if !ok || sess == nil {
+		t.Fatal("expected session to exist")
+	}
+	initialLastSeen := sess.LastSeenAt
+
+	s.now = func() time.Time { return now.Add(8 * time.Minute) }
+	sess, ok = s.AuthenticateWithoutTouch(token)
+	if !ok || sess == nil {
+		t.Fatal("expected auth without touch to succeed within idle window")
+	}
+	if !sess.LastSeenAt.Equal(initialLastSeen) {
+		t.Fatal("AuthenticateWithoutTouch should not update LastSeenAt")
+	}
+
+	s.now = func() time.Time { return now.Add(11 * time.Minute) }
+	sess, ok = s.Authenticate(token)
+	if ok || sess != nil {
+		t.Fatal("expected session to expire when it was never touched")
+	}
+}
+
+func TestTouchResetsIdleTimeout(t *testing.T) {
+	s := NewStore(Config{Enabled: true, MaxLifetime: 24 * time.Hour, IdleTimeout: 10 * time.Minute})
+	now := time.Now()
+	s.now = func() time.Time { return now }
+
+	id, token, _ := s.Create("agent-1", "")
+
+	s.now = func() time.Time { return now.Add(8 * time.Minute) }
+	sess, ok := s.AuthenticateWithoutTouch(token)
+	if !ok || sess == nil {
+		t.Fatal("expected auth without touch to succeed")
+	}
+	if !s.Touch(id) {
+		t.Fatal("expected touch to succeed")
+	}
+
+	s.now = func() time.Time { return now.Add(16 * time.Minute) }
+	sess, ok = s.Authenticate(token)
+	if !ok || sess == nil {
+		t.Fatal("expected auth to succeed after touch reset")
+	}
+}
+
 func TestRevoke(t *testing.T) {
 	s := NewStore(Config{Enabled: true})
 	id, token, _ := s.Create("agent-1", "")

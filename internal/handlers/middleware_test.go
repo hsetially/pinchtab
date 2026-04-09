@@ -1161,6 +1161,43 @@ func TestAuthMiddleware_SessionAuthRejectsRouteOutsideGrant(t *testing.T) {
 	}
 }
 
+func TestAuthMiddleware_ForbiddenSessionRequestDoesNotExtendIdleLifetime(t *testing.T) {
+	store := agentsession.NewStore(agentsession.Config{Enabled: true, IdleTimeout: 100 * time.Millisecond, MaxLifetime: 24 * time.Hour})
+	sessionID, token, _ := store.Create("test-agent", "test")
+	sess, ok := store.Get(sessionID)
+	if !ok || sess == nil {
+		t.Fatal("expected session to exist")
+	}
+	sess.Grants = []string{"browse"}
+
+	cfg := &config.RuntimeConfig{Token: "server-token"}
+	handler := AuthMiddlewareWithSessions(cfg, nil, store, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	time.Sleep(30 * time.Millisecond)
+
+	req := httptest.NewRequest(http.MethodGet, "/clipboard/read", nil)
+	req.Header.Set("Authorization", "Session "+token)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("expected 403, got %d", rr.Code)
+	}
+
+	time.Sleep(90 * time.Millisecond)
+
+	req = httptest.NewRequest(http.MethodGet, "/text", nil)
+	req.Header.Set("Authorization", "Session "+token)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusUnauthorized {
+		t.Fatalf("expected 401 after idle timeout, got %d", rr.Code)
+	}
+}
+
 func TestAuthMiddleware_SessionAuthEnrichesActivity(t *testing.T) {
 	store := agentsession.NewStore(agentsession.Config{Enabled: true, IdleTimeout: 30 * time.Minute, MaxLifetime: 24 * time.Hour})
 	sessionID, token, _ := store.Create("test-agent", "test")

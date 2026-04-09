@@ -300,3 +300,22 @@ func TestAgentSessionAPI_Revoke_RejectsUnauthenticatedCaller(t *testing.T) {
 		t.Fatalf("status = %d, want %d", w.Code, http.StatusForbidden)
 	}
 }
+
+func TestAgentSessionAPI_RegisterHandlers_NoOpsWhenDisabled(t *testing.T) {
+	store := agentsession.NewStore(agentsession.Config{
+		Enabled:     false,
+		Mode:        "off",
+		IdleTimeout: 30 * time.Minute,
+		MaxLifetime: 24 * time.Hour,
+	})
+	mux := newTestSessionMux(store)
+
+	req := httptest.NewRequest("POST", "/sessions", strings.NewReader(`{"agentId":"agent-1"}`))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+
+	if w.Code != http.StatusNotFound {
+		t.Fatalf("status = %d, want %d", w.Code, http.StatusNotFound)
+	}
+}

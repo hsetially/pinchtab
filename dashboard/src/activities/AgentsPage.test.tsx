@@ -11,11 +11,12 @@ vi.mock("./api", () => ({
 
 vi.mock("../services/api", () => ({
   fetchAllTabs: vi.fn(),
+  fetchAgent: vi.fn(),
   fetchSessions: vi.fn(),
 }));
 
 import { fetchActivity } from "./api";
-import { fetchSessions, fetchAllTabs } from "../services/api";
+import { fetchAgent, fetchSessions, fetchAllTabs } from "../services/api";
 
 describe("AgentsPage", () => {
   beforeEach(() => {
@@ -47,6 +48,16 @@ describe("AgentsPage", () => {
         status: "active",
       },
     ]);
+    vi.mocked(fetchAgent).mockResolvedValue({
+      agent: {
+        id: "cli",
+        name: "CLI",
+        connectedAt: "2026-03-16T08:00:00Z",
+        lastActivity: "2026-03-16T08:10:00Z",
+        requestCount: 3,
+      },
+      events: [],
+    });
     vi.mocked(fetchActivity).mockResolvedValue({
       count: 4,
       events: [
@@ -388,6 +399,10 @@ describe("AgentsPage", () => {
     );
 
     await waitFor(() => {
+      expect(fetchAgent).toHaveBeenCalledWith("cli");
+    });
+
+    await waitFor(() => {
       expect(fetchActivity).toHaveBeenCalledWith(
         expect.objectContaining({
           source: "client",
@@ -395,6 +410,55 @@ describe("AgentsPage", () => {
           agentId: "cli",
         }),
       );
+    });
+
+    expect(screen.getByText("Extract text from page")).toBeInTheDocument();
+  });
+
+  it("hydrates older agent history from the agent detail endpoint", async () => {
+    vi.mocked(fetchAgent).mockResolvedValue({
+      agent: {
+        id: "cli",
+        name: "CLI",
+        connectedAt: "2026-03-16T08:00:00Z",
+        lastActivity: "2026-03-16T08:10:00Z",
+        requestCount: 3,
+      },
+      events: [
+        {
+          id: "evt_thread_history",
+          timestamp: "2026-03-16T07:45:00Z",
+          agentId: "cli",
+          channel: "tool_call",
+          type: "text",
+          method: "GET",
+          path: "/text",
+          message: "",
+          details: {
+            source: "client",
+            requestId: "req_thread_history",
+            sessionId: "ses_789",
+            status: 200,
+            durationMs: 14,
+            tabId: "tab_123",
+            action: "text",
+          },
+        },
+      ],
+    });
+    vi.mocked(fetchActivity).mockResolvedValue({
+      count: 0,
+      events: [],
+    });
+
+    render(
+      <MemoryRouter>
+        <AgentsPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(fetchAgent).toHaveBeenCalledWith("cli");
     });
 
     expect(screen.getByText("Extract text from page")).toBeInTheDocument();

@@ -122,6 +122,15 @@ func (s *Store) Create(agentID, label string) (sessionID, sessionToken string, e
 // Authenticate validates a token and returns the associated session.
 // It updates LastSeenAt on success.
 func (s *Store) Authenticate(token string) (*Session, bool) {
+	return s.authenticate(token, true)
+}
+
+// AuthenticateWithoutTouch validates a token without updating LastSeenAt.
+func (s *Store) AuthenticateWithoutTouch(token string) (*Session, bool) {
+	return s.authenticate(token, false)
+}
+
+func (s *Store) authenticate(token string, touch bool) (*Session, bool) {
 	if s == nil {
 		return nil, false
 	}
@@ -148,11 +157,38 @@ func (s *Store) Authenticate(token string) (*Session, bool) {
 			s.saveLocked()
 			return nil, false
 		}
-		sess.LastSeenAt = now
-		s.saveLocked()
+		if touch {
+			sess.LastSeenAt = now
+			s.saveLocked()
+		}
 		return sess, true
 	}
 	return nil, false
+}
+
+// Touch updates LastSeenAt for an active, unexpired session.
+func (s *Store) Touch(sessionID string) bool {
+	if s == nil {
+		return false
+	}
+
+	now := s.now()
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	sess, ok := s.sessions[strings.TrimSpace(sessionID)]
+	if !ok || sess.Status != StatusActive {
+		return false
+	}
+	if s.isExpired(sess, now) {
+		sess.Status = StatusExpired
+		s.saveLocked()
+		return false
+	}
+	sess.LastSeenAt = now
+	s.saveLocked()
+	return true
 }
 
 // Get returns a session by its public ID.

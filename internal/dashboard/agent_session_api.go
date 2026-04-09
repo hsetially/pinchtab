@@ -23,6 +23,9 @@ func NewAgentSessionAPI(store *agentsession.Store) *AgentSessionAPI {
 
 // RegisterHandlers registers agent session API routes.
 func (a *AgentSessionAPI) RegisterHandlers(mux *http.ServeMux) {
+	if a == nil || a.store == nil || !a.store.Enabled() {
+		return
+	}
 	mux.HandleFunc("POST /sessions", a.handleCreate)
 	mux.HandleFunc("GET /sessions", a.handleList)
 	mux.HandleFunc("GET /sessions/me", a.handleMe)

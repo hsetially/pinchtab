@@ -287,6 +287,74 @@ func TestHandleTab_CloseMissingID(t *testing.T) {
 	}
 }
 
+func TestHandleTab_RejectsUnsupportedScheme(t *testing.T) {
+	for _, scheme := range []string{"file:///etc/passwd", "javascript:alert(1)", "chrome://settings"} {
+		m := &mockBridge{}
+		h := New(m, &config.RuntimeConfig{}, nil, nil, nil)
+		body := `{"action":"new","url":"` + scheme + `"}`
+		req := httptest.NewRequest("POST", "/tab", bytes.NewReader([]byte(body)))
+		w := httptest.NewRecorder()
+		h.HandleTab(w, req)
+		if w.Code != 400 {
+			t.Errorf("scheme %q: expected 400, got %d: %s", scheme, w.Code, w.Body.String())
+		}
+		if len(m.createTabURLs) != 0 {
+			t.Errorf("scheme %q: CreateTab should not be called but was", scheme)
+		}
+	}
+}
+
+func TestHandleTab_RejectsPrivateLiteralIP(t *testing.T) {
+	m := &mockBridge{}
+	h := New(m, &config.RuntimeConfig{}, nil, nil, nil)
+	body := `{"action":"new","url":"http://192.168.1.1/"}`
+	req := httptest.NewRequest("POST", "/tab", bytes.NewReader([]byte(body)))
+	w := httptest.NewRecorder()
+	h.HandleTab(w, req)
+	if w.Code != 403 {
+		t.Fatalf("expected 403, got %d: %s", w.Code, w.Body.String())
+	}
+	if len(m.createTabURLs) != 0 {
+		t.Fatalf("CreateTab should not be called for blocked targets")
+	}
+}
+
+func TestHandleTab_RejectsResolvedPrivateIP(t *testing.T) {
+	stubNavigateHostResolution(t, func(context.Context, string, string) ([]net.IP, error) {
+		return []net.IP{net.ParseIP("10.0.0.5")}, nil
+	})
+	m := &mockBridge{}
+	h := New(m, &config.RuntimeConfig{}, nil, nil, nil)
+	body := `{"action":"new","url":"https://example.com"}`
+	req := httptest.NewRequest("POST", "/tab", bytes.NewReader([]byte(body)))
+	w := httptest.NewRecorder()
+	h.HandleTab(w, req)
+	if w.Code != 403 {
+		t.Fatalf("expected 403, got %d: %s", w.Code, w.Body.String())
+	}
+	if len(m.createTabURLs) != 0 {
+		t.Fatalf("CreateTab should not be called for blocked targets")
+	}
+}
+
+func TestHandleTab_AllowsValidURL(t *testing.T) {
+	stubNavigateHostResolution(t, func(context.Context, string, string) ([]net.IP, error) {
+		return []net.IP{net.ParseIP("93.184.216.34")}, nil
+	})
+	m := &mockBridge{}
+	h := New(m, &config.RuntimeConfig{}, nil, nil, nil)
+	body := `{"action":"new","url":"https://example.com"}`
+	req := httptest.NewRequest("POST", "/tab", bytes.NewReader([]byte(body)))
+	w := httptest.NewRecorder()
+	h.HandleTab(w, req)
+	if w.Code != 200 && w.Code != 500 {
+		t.Fatalf("expected valid URL to proceed, got %d: %s", w.Code, w.Body.String())
+	}
+	if len(m.createTabURLs) == 0 {
+		t.Fatal("expected CreateTab to be called for valid URL")
+	}
+}
+
 func TestIsNavigateAbortedOnBinary(t *testing.T) {
 	tests := []struct {
 		name   string

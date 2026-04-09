@@ -75,7 +75,10 @@ func RunDashboard(cfg *config.RuntimeConfig, version string) {
 		MaxLifetime: cfg.Sessions.Agent.MaxLifetime,
 		PersistPath: filepath.Join(cfg.StateDir, "sessions.json"),
 	})
-	agentSessionAPI := dashboard.NewAgentSessionAPI(agentSessionStore)
+	var agentSessionAPI *dashboard.AgentSessionAPI
+	if agentSessionStore.Enabled() {
+		agentSessionAPI = dashboard.NewAgentSessionAPI(agentSessionStore)
+	}
 
 	// Wire up instance events to SSE broadcast
 	orch.OnEvent(func(evt orchestrator.InstanceEvent) {

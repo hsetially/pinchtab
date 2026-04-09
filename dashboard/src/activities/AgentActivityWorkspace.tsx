@@ -185,7 +185,8 @@ export default function AgentActivityWorkspace({
   useAgentEventStore = false,
   clearToInitialFilters = false,
 }: Props) {
-  const { instances, profiles, agents, agentEventsById } = useAppStore();
+  const { instances, profiles, agents, agentEventsById, hydrateAgentEvents } =
+    useAppStore();
   const normalizedHiddenSources = useMemo(
     () => [...hiddenSources],
     [hiddenSources],
@@ -221,6 +222,7 @@ export default function AgentActivityWorkspace({
 
   const usesAgentThreadView = useAgentEventStore && sidebarTab === "agents";
   const deferredFilters = useDeferredValue(filters);
+  const threadAgentId = deferredFilters.agentId.trim();
   const catalogQuery = useMemo(() => {
     const q = buildActivityQuery(deferredFilters);
     if (usesAgentThreadView) {
@@ -232,13 +234,13 @@ export default function AgentActivityWorkspace({
   }, [deferredFilters, usesAgentThreadView]);
   const catalogQueryKey = JSON.stringify(catalogQuery);
   const threadQuery = useMemo(() => {
-    if (!usesAgentThreadView || !deferredFilters.agentId.trim()) {
+    if (!usesAgentThreadView || !threadAgentId) {
       return null;
     }
     const q = buildActivityQuery(withClearedSessionFilter(deferredFilters));
     q.source = "client";
     return q;
-  }, [deferredFilters, usesAgentThreadView]);
+  }, [deferredFilters, threadAgentId, usesAgentThreadView]);
   const threadQueryKey = JSON.stringify(threadQuery);
 
   useEffect(() => {
@@ -318,7 +320,7 @@ export default function AgentActivityWorkspace({
   }, [catalogQuery, catalogQueryKey, refreshNonce]);
 
   useEffect(() => {
-    if (!usesAgentThreadView || !threadQuery) {
+    if (!usesAgentThreadView || !threadAgentId) {
       setThreadEvents([]);
       setAgentLoading(false);
       return;
@@ -329,10 +331,16 @@ export default function AgentActivityWorkspace({
       setAgentLoading(true);
       setError("");
       try {
-        const response = await fetchActivity(threadQuery);
+        const [detail, response] = await Promise.all([
+          api.fetchAgent(threadAgentId),
+          threadQuery
+            ? fetchActivity(threadQuery)
+            : Promise.resolve({ count: 0, events: [] }),
+        ]);
         if (cancelled) {
           return;
         }
+        hydrateAgentEvents(detail.agent.id, detail.events);
         setThreadEvents(response.events.map(normalizeDashboardActivityEvent));
       } catch (err) {
         if (cancelled) {
@@ -352,7 +360,14 @@ export default function AgentActivityWorkspace({
     return () => {
       cancelled = true;
     };
-  }, [refreshNonce, threadQuery, threadQueryKey, usesAgentThreadView]);
+  }, [
+    hydrateAgentEvents,
+    refreshNonce,
+    threadAgentId,
+    threadQuery,
+    threadQueryKey,
+    usesAgentThreadView,
+  ]);
 
   const filteredInstances = useMemo(
     () =>
