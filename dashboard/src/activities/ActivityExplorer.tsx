@@ -1,10 +1,14 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { Select } from "../components/atoms";
+import { SidebarPanel, SidebarPanelHeader } from "../components/molecules";
 import { useAppStore } from "../stores/useAppStore";
 import * as api from "../services/api";
 import type { InstanceTab } from "../types";
 import { fetchActivity } from "./api";
-import ActivityFilterMenu from "./ActivityFilterMenu";
+import {
+  ActivityFilterActions,
+  ActivityFilterFields,
+} from "./ActivityFilterMenu";
 import ActivityTimeline from "./ActivityTimeline";
 import {
   applyLockedFilters,
@@ -253,31 +257,42 @@ export default function ActivityExplorer({
 
   const layoutClass = embedded
     ? "flex h-full min-h-0 flex-col overflow-hidden"
-    : "flex h-full min-h-0 flex-col gap-4 overflow-hidden p-4 xl:flex-row";
+    : "flex h-full min-h-0 flex-col gap-4 overflow-hidden p-4 lg:flex-row";
 
   return (
     <div className={layoutClass}>
       {showFilterMenu && (
-        <aside className="dashboard-panel flex w-full shrink-0 flex-col overflow-hidden xl:w-80">
-          <div className="border-b border-border-subtle px-4 py-4">
-            <div className="dashboard-section-label mb-1">{summaryLabel}</div>
-            <h1 className="text-lg font-semibold text-text-primary">{title}</h1>
-            <p className="mt-2 text-xs leading-5 text-text-muted">{summary}</p>
-          </div>
-          <ActivityFilterMenu
+        <SidebarPanel
+          as="aside"
+          surface="panel"
+          width="wide"
+          headerPadding="lg"
+          header={
+            <SidebarPanelHeader
+              eyebrow={summaryLabel}
+              title={title}
+              description={summary}
+            />
+          }
+          footer={
+            <ActivityFilterActions
+              loading={loading}
+              onClear={clearFilters}
+              onRefresh={() => setFilters((current) => ({ ...current }))}
+            />
+          }
+        >
+          <ActivityFilterFields
             filters={effectiveFilters}
             profileOptions={profiles}
             instanceOptions={filteredInstances}
             tabOptions={visibleTabs}
             agentOptions={agentOptions}
-            loading={loading}
-            onClear={clearFilters}
-            onRefresh={() => setFilters((current) => ({ ...current }))}
             onFilterChange={updateFilter}
             onProfileChange={handleProfileChange}
             onInstanceChange={handleInstanceChange}
           />
-        </aside>
+        </SidebarPanel>
       )}
 
       {embedded && agentOptions.length > 0 && (
