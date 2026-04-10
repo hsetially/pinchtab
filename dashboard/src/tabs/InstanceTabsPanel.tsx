@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { InstanceTab } from "../generated/types";
 import { useAppStore } from "../stores/useAppStore";
-import { TabsChart } from "../components/molecules";
+import { SidebarPanel, TabsChart } from "../components/molecules";
 import InstanceStats from "../components/molecules/InstanceStats";
 import { ErrorBoundary } from "../components/atoms";
 import TabBar from "./TabBar";
@@ -119,44 +119,49 @@ export default function InstanceTabsPanel({
   }, [currentTabIds, showTelemetry]);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <TabBar
-        tabs={tabs}
-        selectedTabId={selectedTabId}
-        pinnedTabId={selectionPinned ? selectedTabId : null}
-        telemetryActive={showTelemetry}
-        newTabsCount={newTabsCount}
-        onSelect={(id) => {
-          setAcknowledgedTabIds(currentTabIds);
-          setSelectedTabId(id);
-          setSelectionPinned(true);
-          if (showTelemetry) {
-            setShowTelemetry(false);
-          }
-        }}
-        onTogglePinned={(id) => {
-          if (selectionPinned && selectedTabId === id) {
-            setSelectionPinned(false);
-            setSelectedTabId(tabs[0]?.id ?? null);
-            return;
-          }
-          setAcknowledgedTabIds(currentTabIds);
-          setSelectedTabId(id);
-          setSelectionPinned(true);
-          if (showTelemetry) {
-            setShowTelemetry(false);
-          }
-        }}
-        onSetTelemetry={(active) => {
-          if (!active) {
+    <SidebarPanel
+      className="flex-1"
+      scrollContent={false}
+      contentClassName="flex min-h-0 flex-1 flex-col overflow-hidden"
+      header={
+        <TabBar
+          tabs={tabs}
+          selectedTabId={selectedTabId}
+          pinnedTabId={selectionPinned ? selectedTabId : null}
+          telemetryActive={showTelemetry}
+          newTabsCount={newTabsCount}
+          onSelect={(id) => {
             setAcknowledgedTabIds(currentTabIds);
-          }
-          if (active !== showTelemetry) {
-            setShowTelemetry(active);
-          }
-        }}
-      />
-
+            setSelectedTabId(id);
+            setSelectionPinned(true);
+            if (showTelemetry) {
+              setShowTelemetry(false);
+            }
+          }}
+          onTogglePinned={(id) => {
+            if (selectionPinned && selectedTabId === id) {
+              setSelectionPinned(false);
+              setSelectedTabId(tabs[0]?.id ?? null);
+              return;
+            }
+            setAcknowledgedTabIds(currentTabIds);
+            setSelectedTabId(id);
+            setSelectionPinned(true);
+            if (showTelemetry) {
+              setShowTelemetry(false);
+            }
+          }}
+          onSetTelemetry={(active) => {
+            if (!active) {
+              setAcknowledgedTabIds(currentTabIds);
+            }
+            if (active !== showTelemetry) {
+              setShowTelemetry(active);
+            }
+          }}
+        />
+      }
+    >
       {tabs.length === 0 && !showTelemetry ? (
         <div className="flex flex-1 items-center justify-center py-8 text-sm text-text-muted">
           {emptyMessage}
@@ -188,6 +193,6 @@ export default function InstanceTabsPanel({
       ) : (
         <SelectedTabPanel selectedTab={selectedTab} instanceId={instanceId} />
       )}
-    </div>
+    </SidebarPanel>
   );
 }

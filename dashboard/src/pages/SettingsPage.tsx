@@ -1,6 +1,7 @@
 import type { Dispatch, FormEvent, SetStateAction } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { Button, Card, Input, Modal } from "../components/atoms";
+import { SidebarPanel, SidebarPanelHeader } from "../components/molecules";
 import * as api from "../services/api";
 import { useAppStore } from "../stores/useAppStore";
 import type {
@@ -387,33 +388,41 @@ export default function SettingsPage() {
       </Modal>
 
       <div className="flex flex-1 flex-col overflow-hidden lg:flex-row">
-        <aside className="flex w-full shrink-0 flex-col overflow-y-auto border-b border-border-subtle lg:w-72 lg:border-b-0 lg:border-r">
-          <Card className="p-3">
-            <div className="dashboard-section-label">Settings</div>
-            <div className="mb-3 dashboard-mono text-xs text-text-muted">
-              Version: {serverInfo?.version || "dev"}
-            </div>
-            <div className="flex flex-col gap-1.5">
-              {sections.map((section) => (
-                <button
-                  key={section.id}
-                  type="button"
-                  className={`rounded-sm border px-3 py-2.5 text-left transition-all ${
-                    activeSection === section.id
-                      ? "border-primary/30 bg-primary/10 text-text-primary"
-                      : "border-transparent text-text-secondary hover:border-border-subtle hover:bg-bg-elevated hover:text-text-primary"
-                  }`}
-                  onClick={() => setActiveSection(section.id)}
-                >
-                  <div className="text-sm font-medium">{section.label}</div>
-                  <div className="mt-1 text-xs leading-5 text-text-muted">
-                    {section.description}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </Card>
-        </aside>
+        <SidebarPanel
+          as="aside"
+          chrome="sidebar"
+          contentPadding="sm"
+          headerPadding="sm"
+          surface="panel"
+          width="narrow"
+          header={
+            <SidebarPanelHeader
+              eyebrow="Settings"
+              description={`Version: ${serverInfo?.version || "dev"}`}
+              descriptionClassName="dashboard-mono"
+            />
+          }
+        >
+          <div className="flex flex-col gap-1.5">
+            {sections.map((section) => (
+              <button
+                key={section.id}
+                type="button"
+                className={`rounded-sm border px-3 py-2.5 text-left transition-all ${
+                  activeSection === section.id
+                    ? "border-primary/30 bg-primary/10 text-text-primary"
+                    : "border-transparent text-text-secondary hover:border-border-subtle hover:bg-bg-elevated hover:text-text-primary"
+                }`}
+                onClick={() => setActiveSection(section.id)}
+              >
+                <div className="text-sm font-medium">{section.label}</div>
+                <div className="mt-1 text-xs leading-5 text-text-muted">
+                  {section.description}
+                </div>
+              </button>
+            ))}
+          </div>
+        </SidebarPanel>
 
         <div className="flex-1 overflow-y-auto pr-1">
           <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-border-subtle bg-bg-surface/95 p-3 backdrop-blur">
