@@ -22,8 +22,8 @@ func (m *mockRunner) Run(context.Context, string, []string, []string, io.Writer,
 	return nil, nil
 }
 
-func (m *mockRunner) IsPortAvailable(string) bool {
-	return m.portAvail
+func (m *mockRunner) InspectPort(string) orchestrator.PortInspection {
+	return orchestrator.PortInspection{Available: m.portAvail}
 }
 
 // fakeBridge creates a test server that mimics a bridge instance.

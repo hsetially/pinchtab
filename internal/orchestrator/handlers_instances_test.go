@@ -31,6 +31,7 @@ func TestHandleLaunchByNameAliasesStartSemantics(t *testing.T) {
 	old := processAliveFunc
 	processAliveFunc = func(pid int) bool { return pid > 0 }
 	defer func() { processAliveFunc = old }()
+	stubPortAvailability(t, func(int) bool { return true })
 
 	baseDir := t.TempDir()
 	runner := &mockRunner{portAvail: true}

@@ -604,6 +604,6 @@ func (r *mockRunner) Run(_ context.Context, _ string, _ []string, _ []string, _,
 	return &mockCmd{}, nil
 }
 
-func (r *mockRunner) IsPortAvailable(_ string) bool {
-	return r.portAvail
+func (r *mockRunner) InspectPort(_ string) orchestrator.PortInspection {
+	return orchestrator.PortInspection{Available: r.portAvail}
 }

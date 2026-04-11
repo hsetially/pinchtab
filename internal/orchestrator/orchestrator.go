@@ -293,9 +293,12 @@ func (o *Orchestrator) Launch(name, port string, headless bool, extensionPaths [
 			return nil, fmt.Errorf("profile %q already has an active instance (%s)", name, inst.Status)
 		}
 	}
-	if !o.runner.IsPortAvailable(port) {
+	portInspection := o.runner.InspectPort(port)
+	if !portInspection.Available {
 		o.mu.Unlock()
-		return nil, fmt.Errorf("port %s is already in use on this machine", port)
+		err := portConflictError(port, portInspection)
+		slog.Error("instance launch blocked by port conflict", "profile", name, "port", port, "pid", portInspection.PID, "command", portInspection.Command, "error", err.Error())
+		return nil, err
 	}
 
 	profileID := o.idMgr.ProfileID(name)
@@ -380,6 +383,20 @@ func (o *Orchestrator) childInstanceBaseURL(port string) string {
 		host = configuredChildInstanceHost(o.runtimeCfg.Bind)
 	}
 	return httpBaseURL(host, port)
+}
+
+func portConflictError(port string, inspection PortInspection) error {
+	if inspection.PID > 0 {
+		process := fmt.Sprintf("pid %d", inspection.PID)
+		if command := strings.TrimSpace(inspection.Command); command != "" {
+			process = fmt.Sprintf("%s (%s)", process, command)
+		}
+		if strings.Contains(strings.ToLower(inspection.Command), "pinchtab") {
+			return fmt.Errorf("instance port %s is already in use by %s; stop the stale process and restart PinchTab, for example: kill %d", port, process, inspection.PID)
+		}
+		return fmt.Errorf("instance port %s is already in use by %s; stop the process and restart PinchTab, for example: kill %d", port, process, inspection.PID)
+	}
+	return fmt.Errorf("instance port %s is already in use on this machine", port)
 }
 
 func (o *Orchestrator) writeChildConfig(port string, cdpPort int, profilePath, instanceStateDir string, headless bool, extensionPaths []string) (string, error) {

@@ -54,6 +54,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxshmfence1 \
     libxss1 \
     libxtst6 \
+    netcat-openbsd \
     procps \
     unzip \
  && rm -rf /var/lib/apt/lists/*
