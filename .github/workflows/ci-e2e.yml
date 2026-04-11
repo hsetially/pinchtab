@@ -14,45 +14,108 @@ on:
       - 'skill/**'
       - 'plugin/**'
   workflow_dispatch:
+    inputs:
+      suite:
+        description: 'Suite to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - api
+          - cli
+          - infra
 
 
 jobs:
-  api-fast:
-    if: github.event_name != 'workflow_dispatch'
+  detect-changes:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      api_touched: ${{ steps.changes.outputs.api_touched }}
+      cli_touched: ${{ steps.changes.outputs.cli_touched }}
+      infra_touched: ${{ steps.changes.outputs.infra_touched }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Detect touched E2E files
+        id: changes
+        run: |
+          CHANGED=$(git diff --name-only origin/main...HEAD)
+
+          # Find touched extended/standalone scenarios
+          API_TOUCHED=$(echo "$CHANGED" | grep -E 'tests/e2e/scenarios/api/.*-extended\.sh|tests/e2e/scenarios/api/[^/-]+\.sh' | tr '\n' ' ' || true)
+          CLI_TOUCHED=$(echo "$CHANGED" | grep -E 'tests/e2e/scenarios/cli/.*-extended\.sh|tests/e2e/scenarios/cli/[^/-]+\.sh' | tr '\n' ' ' || true)
+          INFRA_TOUCHED=$(echo "$CHANGED" | grep -E 'tests/e2e/scenarios/infra/.*-extended\.sh|tests/e2e/scenarios/infra/[^/-]+\.sh' | tr '\n' ' ' || true)
+
+          echo "api_touched=$API_TOUCHED" >> "$GITHUB_OUTPUT"
+          echo "cli_touched=$CLI_TOUCHED" >> "$GITHUB_OUTPUT"
+          echo "infra_touched=$INFRA_TOUCHED" >> "$GITHUB_OUTPUT"
+
+  api:
+    needs: [detect-changes]
+    if: always() && (needs.detect-changes.result == 'success' || needs.detect-changes.result == 'skipped')
     uses: ./.github/workflows/reusable-e2e.yml
     with:
       ref: ${{ github.sha }}
-      suite: api-fast
-      summary_title: E2E API Fast Tests
+      suite: api
+      extra_scenarios: ${{ needs.detect-changes.outputs.api_touched || '' }}
+      summary_title: E2E API Tests
       timeout_minutes: 15
       compose_file: tests/e2e/docker-compose.yml
 
-  cli-fast:
-    if: github.event_name != 'workflow_dispatch'
+  cli:
+    needs: [detect-changes]
+    if: always() && (needs.detect-changes.result == 'success' || needs.detect-changes.result == 'skipped')
     uses: ./.github/workflows/reusable-e2e.yml
     with:
       ref: ${{ github.sha }}
-      suite: cli-fast
-      summary_title: E2E CLI Fast Tests
+      suite: cli
+      extra_scenarios: ${{ needs.detect-changes.outputs.cli_touched || '' }}
+      summary_title: E2E CLI Tests
       timeout_minutes: 15
       compose_file: tests/e2e/docker-compose.yml
 
-  full-api:
-    if: github.event_name == 'workflow_dispatch'
+  infra:
+    needs: [detect-changes]
+    if: always() && (needs.detect-changes.result == 'success' || needs.detect-changes.result == 'skipped')
     uses: ./.github/workflows/reusable-e2e.yml
     with:
       ref: ${{ github.sha }}
-      suite: full-api
-      summary_title: E2E Full API Tests
+      suite: infra
+      extra_scenarios: ${{ needs.detect-changes.outputs.infra_touched || '' }}
+      summary_title: E2E Infra Tests
+      timeout_minutes: 15
+      compose_file: tests/e2e/docker-compose.yml
+
+  # Extended suites for manual dispatch
+  api-extended:
+    if: github.event_name == 'workflow_dispatch' && (inputs.suite == 'all' || inputs.suite == 'api')
+    uses: ./.github/workflows/reusable-e2e.yml
+    with:
+      ref: ${{ github.sha }}
+      suite: api-extended
+      summary_title: E2E API Extended Tests
       timeout_minutes: 20
       compose_file: tests/e2e/docker-compose-multi.yml
 
-  full-cli:
-    if: github.event_name == 'workflow_dispatch'
+  cli-extended:
+    if: github.event_name == 'workflow_dispatch' && (inputs.suite == 'all' || inputs.suite == 'cli')
     uses: ./.github/workflows/reusable-e2e.yml
     with:
       ref: ${{ github.sha }}
-      suite: full-cli
-      summary_title: E2E Full CLI Tests
+      suite: cli-extended
+      summary_title: E2E CLI Extended Tests
       timeout_minutes: 20
       compose_file: tests/e2e/docker-compose.yml
+
+  infra-extended:
+    if: github.event_name == 'workflow_dispatch' && (inputs.suite == 'all' || inputs.suite == 'infra')
+    uses: ./.github/workflows/reusable-e2e.yml
+    with:
+      ref: ${{ github.sha }}
+      suite: infra-extended
+      summary_title: E2E Infra Extended Tests
+      timeout_minutes: 25
+      compose_file: tests/e2e/docker-compose-multi.yml
