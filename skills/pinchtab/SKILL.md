@@ -223,6 +223,7 @@ Rules:
 - Prefer `click --wait-nav` when a click is expected to navigate.
 - Re-snapshot immediately after `click`, `press Enter`, `select`, or `scroll` if the UI can change.
 - To discover valid dropdown values, snapshot with `filter=interactive` first — the output shows `<option>` elements with their `value` attributes. Then use `select` with the exact value.
+- If a click opens a JS dialog (`alert`, `confirm`, `prompt`), pass `"dialogAction": "accept"` or `"dialogAction": "dismiss"` on the click action body. The dialog is auto-handled in a single call. Without this, the click hangs until `/tabs/TAB_ID/dialog` is called from a parallel request, and a pending dialog wedges subsequent `/snapshot` and `/text` calls.
 
 ### Export, debug, and verification
 

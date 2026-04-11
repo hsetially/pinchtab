@@ -209,6 +209,13 @@ func (tm *TabManager) TabContext(tabID string) (context.Context, string, error) 
 							slog.Warn("eager network capture failed", "tab", tabID, "err", err)
 						}
 					}
+					if tm.dialogMgr != nil {
+						autoAccept := tm.config != nil && tm.config.DialogAutoAccept
+						ListenDialogEvents(ctx, tabID, tm.dialogMgr, autoAccept)
+						if err := EnableDialogEvents(ctx); err != nil {
+							slog.Warn("enable dialog events failed", "tabId", tabID, "err", err)
+						}
+					}
 					tm.RegisterTabWithCancel(tabID, raw, ctx, cancel)
 
 					tm.mu.RLock()
@@ -375,6 +382,11 @@ func (tm *TabManager) CreateTab(url string) (string, context.Context, context.Ca
 	if tm.dialogMgr != nil {
 		autoAccept := tm.config != nil && tm.config.DialogAutoAccept
 		ListenDialogEvents(ctx, tabID, tm.dialogMgr, autoAccept)
+		// Page domain must be enabled for Page.javascriptDialogOpening events
+		// to be delivered to ListenTarget callbacks.
+		if err := EnableDialogEvents(ctx); err != nil {
+			slog.Warn("enable dialog events failed", "tabId", tabID, "err", err)
+		}
 	}
 
 	if tm.shouldEagerlyCaptureConsole() {

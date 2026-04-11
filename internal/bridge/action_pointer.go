@@ -67,6 +67,15 @@ func submitFormIfButton(ctx context.Context, selector string) (bool, error) {
 }
 
 func (b *Bridge) actionClick(ctx context.Context, req ActionRequest) (map[string]any, error) {
+	// Arm a one-shot dialog auto-handler if the caller expects the click
+	// to open a native JS dialog. Without this, the click would hang
+	// waiting for the dialog to be handled from a separate request.
+	if req.DialogAction != "" && req.TabID != "" {
+		if dm := b.GetDialogManager(); dm != nil {
+			dm.ArmAutoHandler(req.TabID, req.DialogAction, req.DialogText)
+		}
+	}
+
 	var err error
 	if req.Selector != "" {
 		// For submit buttons, use requestSubmit() to fire constraint validation,
@@ -120,9 +129,11 @@ func (b *Bridge) actionHover(ctx context.Context, req ActionRequest) (map[string
 		return map[string]any{"hovered": true}, HoverByNodeID(ctx, req.NodeID)
 	}
 	if req.Selector != "" {
-		return map[string]any{"hovered": true}, chromedp.Run(ctx,
-			chromedp.Evaluate(fmt.Sprintf(`document.querySelector(%q)?.dispatchEvent(new MouseEvent('mouseover', {bubbles:true}))`, req.Selector), nil),
-		)
+		node, err := firstNodeBySelector(ctx, req.Selector)
+		if err != nil {
+			return nil, err
+		}
+		return map[string]any{"hovered": true}, HoverByNodeID(ctx, int64(node.BackendNodeID))
 	}
 	if req.HasXY {
 		return map[string]any{"hovered": true}, HoverByCoordinate(ctx, req.X, req.Y)

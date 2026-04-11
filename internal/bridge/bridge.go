@@ -87,6 +87,7 @@ func New(allocCtx, browserCtx context.Context, cfg *config.RuntimeConfig) *Bridg
 		stealthLaunchMode:   stealth.LaunchModeUninitialized,
 	}
 	b.ensureStealthBundle()
+	b.Dialogs = NewDialogManager()
 	// Only initialize TabManager if browserCtx is provided (not lazy-init case)
 	if cfg != nil && browserCtx != nil {
 		b.TabManager = NewTabManager(browserCtx, cfg, idMgr, logStore, b.tabSetup)
@@ -97,7 +98,6 @@ func New(allocCtx, browserCtx context.Context, cfg *config.RuntimeConfig) *Bridg
 		}
 	}
 	b.Locks = NewLockManager()
-	b.Dialogs = NewDialogManager()
 	b.InitActionRegistry()
 	return b
 }
@@ -628,6 +628,15 @@ type ActionRequest struct {
 	WaitNav bool   `json:"waitNav"`
 	Fast    bool   `json:"fast"`
 	Owner   string `json:"owner"`
+
+	// DialogAction arms a one-shot dialog auto-handler before the action
+	// executes. Used when clicking a button/link that opens a JS dialog
+	// (alert/confirm/prompt). Values: "accept" or "dismiss". When set, the
+	// dialog is handled automatically without a second HTTP call.
+	DialogAction string `json:"dialogAction,omitempty"`
+	// DialogText is the optional prompt text used when DialogAction is
+	// "accept" on a prompt() dialog.
+	DialogText string `json:"dialogText,omitempty"`
 }
 
 // NormalizeSelector merges legacy Ref and Selector (CSS) fields into the
